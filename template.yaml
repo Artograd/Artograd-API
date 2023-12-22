@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: '2010-09-09'
+# https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#sqs
+Transform: AWS::Serverless-2016-10-31
+Description: AWS Serverless Spring Boot 3 API for the Artograd application
+Globals:
+  Api:
+    EndpointConfiguration: REGIONAL
+
+Parameters:
+  Stage:
+    Type: String
+    Default: dev
+
+Resources:
+  ArtogradApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: 
+        Ref: Stage
+      Variables:
+        Stage:
+          Ref: Stage
+  ArtogradApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: com.artograd.api.ApiLambdaHandler::handleRequest
+      Runtime: java21
+      MemorySize: 2048
+      Architectures:
+        - x86_64
+      Policies: AWSLambdaBasicExecutionRole
+      Timeout: 30
+      Environment:
+        Variables:
+          # Specify here variables for deployment,
+          # override local using sam-local-env.json
+          SPRING_PROFILES_ACTIVE: aws
+      Events:
+        GetResource:
+          Type: Api
+          Properties:
+            RestApiId: 
+              Ref: ArtogradApiGateway
+            Path: /{proxy+}
+            Method: ANY
+        CheckWebsiteScheduledEvent:
+          Type: Schedule
+          Properties:
+            Schedule: rate(5 minutes)
+
+Outputs:
+  ArtogradAPIGateway:
+    Description: URL for application
+    Value: !Sub 'https://${ArtogradApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/hello'
+    Export:
+      Name: ArtogradAPIGateway
+  ArogradApiFunction:
+    Description: aws lambda
+    Value: !GetAtt ArtogradApiFunction.Arn
+  ArtogradApiFunctionIamRole:
+    Description: aws lambda role
+    Value: !GetAtt ArtogradApiFunctionRole.Arn
