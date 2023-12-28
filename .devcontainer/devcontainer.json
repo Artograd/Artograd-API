@@ -9,23 +9,19 @@
         "ghcr.io/devcontainers/features/aws-cli:1": {
             "version": "latest"
         },
-        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
-            "moby": true,
-            "installDockerBuildx": true,
-            "version": "latest",
-            "dockerDashComposeVersion": "v2"
-        },
         "ghcr.io/customink/codespaces-features/sam-cli:1": {
             "version": "latest"
         },
         "ghcr.io/devcontainers-contrib/features/maven-sdkman:2": {
             "version": "latest"
-        }
+        },        
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {}
     },
     "customizations": {
         "vscode": {
             "extensions": [
-                "redhat.vscode-yaml"
+                "redhat.vscode-yaml",
+                "redhat.vscode-xml"
             ]
         }
     },

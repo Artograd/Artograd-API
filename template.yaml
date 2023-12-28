@@ -1,63 +1,39 @@
 AWSTemplateFormatVersion: '2010-09-09'
-# https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#sqs
 Transform: AWS::Serverless-2016-10-31
-Description: AWS Serverless Spring Boot 3 API for the Artograd application
+Description: Artograd API Backend
+
 Globals:
   Api:
+    # API Gateway regional endpoints
     EndpointConfiguration: REGIONAL
 
-Parameters:
-  Stage:
-    Type: String
-    Default: dev
-
 Resources:
-  ArtogradApiGateway:
-    Type: AWS::Serverless::Api
-    Properties:
-      StageName: 
-        Ref: Stage
-      Variables:
-        Stage:
-          Ref: Stage
-  ArtogradApiFunction:
+  ArogradAPI:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: .
-      Handler: com.artograd.api.ApiLambdaHandler::handleRequest
+#      AutoPublishAlias: bcn
+      FunctionName: artograd-api-boot-3
+      Handler: com.amazonaws.serverless.proxy.spring.SpringDelegatingLambdaContainerHandler::handleRequest
       Runtime: java21
-      MemorySize: 2048
-      Architectures:
-        - x86_64
+      SnapStart:
+        ApplyOn: PublishedVersions
+      CodeUri: .
+      MemorySize: 1024
       Policies: AWSLambdaBasicExecutionRole
       Timeout: 30
       Environment:
         Variables:
-          # Specify here variables for deployment,
-          # override local using sam-local-env.json
-          SPRING_PROFILES_ACTIVE: aws
+          MAIN_CLASS: com.artograd.api.Application
       Events:
-        GetResource:
-          Type: Api
+        HttpApiEvent:
+          Type: HttpApi
           Properties:
-            RestApiId: 
-              Ref: ArtogradApiGateway
-            Path: /{proxy+}
-            Method: ANY
-        CheckWebsiteScheduledEvent:
-          Type: Schedule
-          Properties:
-            Schedule: rate(5 minutes)
+            TimeoutInMillis: 20000
+            PayloadFormatVersion: '1.0'
 
 Outputs:
-  ArtogradAPIGateway:
+  SpringAtrogradApi:
     Description: URL for application
-    Value: !Sub 'https://${ArtogradApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/hello'
+    Value: !Sub 'https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com'
     Export:
-      Name: ArtogradAPIGateway
-  ArogradApiFunction:
-    Description: aws lambda
-    Value: !GetAtt ArtogradApiFunction.Arn
-  ArtogradApiFunctionIamRole:
-    Description: aws lambda role
-    Value: !GetAtt ArtogradApiFunctionRole.Arn
+      Name: SpringArtogradApi
