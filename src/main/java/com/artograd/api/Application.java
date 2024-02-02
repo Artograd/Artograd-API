@@ -41,10 +41,10 @@ public class Application {
         return new RequestMappingHandlerAdapter();
     }
 
-    @Bean("CognitoIdentityFilter")
-    public Filter cognitoFilter() {
-        return new CognitoIdentityFilter();
-    }
+//    @Bean("CognitoIdentityFilter")
+//    public Filter cognitoFilter() {
+//        return new CognitoIdentityFilter();
+//    }
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
