@@ -43,7 +43,7 @@ jobs:
 
       - name: Build SpringBoot JAR
         run: |
-          ./mvn clean install -DskipTests
+          mvn clean install -DskipTests
 
       - name: Upload to S3
         uses: jakejarvis/s3-sync-action@master
@@ -109,42 +109,42 @@ jobs:
   # Deploy infrastructure resources like ECR repository and load balancer.
   # This job will run on every code change to the master branch, but will only deploy
   # changes if the infrastructure CloudFormation template in the repository have changed.
-  deploy-infrastructure:
-    name: Deploy infrastructure
-    runs-on: ubuntu-latest
-    outputs:
-      env-name: ${{ steps.env-name.outputs.environment }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-
-
-      # The "environment name" is used as the base for CloudFormation stack names,
-      # and is derived from the GitHub repository name.
-      # For example, the repo 'Octocat/Hello-World' would have the environment name
-      # 'Octocat-Hello-World' and would deploy a stack name 'Octocat-Hello-World-ecr-repo'.
-      - name: Configure environment name
-        id: env-name
-        env:
-          REPO: ${{ github.repository }}
-        run: |
-          ENVIRONMENT=`echo $REPO | tr "/" "-"`
-          echo "Environment name: $ENVIRONMENT"
-          echo "::set-output name=environment::$ENVIRONMENT"
-
-      - name: Configure AWS credentials
-        id: creds
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-2
-
-      - name: Deploy lambda infrastructure with CloudFormation
-        id: s3-bucket
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        with:
-          name: ${{ steps.env-name.outputs.environment }}-s3
-          template: cloudformation/s3.yaml
-          role-arn: arn:aws:iam::${{ steps.creds.outputs.aws-account-id }}:role/github-actions-cloudformation-stack-role
+#  deploy-infrastructure:
+#    name: Deploy infrastructure
+#    runs-on: ubuntu-latest
+#    outputs:
+#      env-name: ${{ steps.env-name.outputs.environment }}
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v2
+#
+#
+#
+#      # The "environment name" is used as the base for CloudFormation stack names,
+#      # and is derived from the GitHub repository name.
+#      # For example, the repo 'Octocat/Hello-World' would have the environment name
+#      # 'Octocat-Hello-World' and would deploy a stack name 'Octocat-Hello-World-ecr-repo'.
+#      - name: Configure environment name
+#        id: env-name
+#        env:
+#          REPO: ${{ github.repository }}
+#        run: |
+#          ENVIRONMENT=`echo $REPO | tr "/" "-"`
+#          echo "Environment name: $ENVIRONMENT"
+#          echo "::set-output name=environment::$ENVIRONMENT"
+#
+#      - name: Configure AWS credentials
+#        id: creds
+#        uses: aws-actions/configure-aws-credentials@v1
+#        with:
+#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#          aws-region: us-east-2
+#
+#      - name: Deploy lambda infrastructure with CloudFormation
+#        id: s3-bucket
+#        uses: aws-actions/aws-cloudformation-github-deploy@v1
+#        with:
+#          name: ${{ steps.env-name.outputs.environment }}-s3
+#          template: cloudformation/s3.yaml
+#          role-arn: arn:aws:iam::${{ steps.creds.outputs.aws-account-id }}:role/github-actions-cloudformation-stack-role
