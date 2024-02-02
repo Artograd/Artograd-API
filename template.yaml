@@ -13,7 +13,7 @@ Resources:
     Properties:
 #      AutoPublishAlias: bcn
       FunctionName: artograd-api-boot-3
-      Handler: com.amazonaws.serverless.proxy.spring.SpringDelegatingLambdaContainerHandler::handleRequest
+      Handler: com.artograd.api.StreamLambdaHandler::handleRequest
       Runtime: java21
       SnapStart:
         ApplyOn: PublishedVersions
