@@ -13,7 +13,7 @@ Resources:
     Properties:
 #      AutoPublishAlias: bcn
       FunctionName: artograd-api-boot-3
-      Handler: com.artograd.api.StreamLambdaHandler::handleRequest
+      Handler: com.artograd.api.Handler::handleRequest
       Runtime: java21
       SnapStart:
         ApplyOn: PublishedVersions

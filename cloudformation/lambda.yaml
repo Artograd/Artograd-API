@@ -5,7 +5,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: ArtogradApiSpringBootLambda
-      Handler: com.artograd.api.StreamLambdaHandler::handleRequest
+      Handler: com.artograd.api.Handler::handleRequest
       Role: !ImportValue LambdaExecutionRoleArn
       Runtime: java21
       MemorySize: 512

@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class StreamLambdaHandler implements RequestStreamHandler {
+public class Handler implements RequestStreamHandler {
 
     private static SpringBootLambdaContainerHandler<AwsProxyRequest, AwsProxyResponse> handler;
 
@@ -26,7 +26,7 @@ public class StreamLambdaHandler implements RequestStreamHandler {
         }
     }
 
-    public StreamLambdaHandler() {
+    public Handler() {
         // we enable the timer for debugging. This SHOULD NOT be enabled in production.
         Timer.enable();
     }
