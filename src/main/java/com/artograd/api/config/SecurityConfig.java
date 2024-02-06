@@ -26,13 +26,13 @@ public class SecurityConfig {
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer.jwt(Customizer.withDefaults()))
                 .csrf(Customizer.withDefaults())
-                .cors(SecurityConfig::configureCors)
+                .cors(this::configureCors)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
     }
 
-    private static void configureCors(CorsConfigurer<HttpSecurity> cors) {
+    private void configureCors(CorsConfigurer<HttpSecurity> cors) {
         CorsConfiguration config = new CorsConfiguration();
         config.addAllowedOriginPattern("*");
         config.setAllowedMethods(Arrays.asList("GET", "POST", "DELETE", "PUT", "PATCH", "HEAD"));
