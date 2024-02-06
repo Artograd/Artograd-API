@@ -10,11 +10,6 @@ Resources:
       Runtime: java21
       MemorySize: 512
       Timeout: 30
-      SnapStart:
-        ApplyOn: PublishedVersions
       Code:
         S3Bucket: artograd-api-s3-bucket
         S3Key: target/api-0.0.1-SNAPSHOT-lambda-package.zip
-      Environment:
-        Variables:
-          MAIN_CLASS: com.artograd.api.Application
