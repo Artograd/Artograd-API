@@ -1,6 +1,6 @@
 package com.artograd.api;
 
-import com.artograd.api.config.SecurityConfig;
+//import com.artograd.api.config.SecurityConfig;
 import com.artograd.api.controller.DemoController;
 import com.artograd.api.controller.PetsController;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,7 +15,10 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 
 
 @SpringBootApplication
-@Import({ PetsController.class, DemoController.class, SecurityConfig.class })
+@Import({ PetsController.class,
+    DemoController.class
+//    , SecurityConfig.class
+})
 public class Application {
 
     // silence console logging

@@ -1,6 +1,6 @@
-spring:
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${AWS_COGNITO_USER_POOL_URI}
+#spring:
+#  security:
+#    oauth2:
+#      resourceserver:
+#        jwt:
+#          issuer-uri: ${AWS_COGNITO_USER_POOL_URI}
