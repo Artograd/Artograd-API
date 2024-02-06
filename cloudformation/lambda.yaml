@@ -1,0 +1,29 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Resources:
+  MyLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: ArtogradApiSpringBootLambda
+      Handler: com.artograd.api.MyHandler::handleRequest
+      Role: !ImportValue LambdaExecutionRoleArn
+      Runtime: java21
+      MemorySize: 512
+      Timeout: 30
+      Code:
+        S3Bucket: artograd-api-s3-bucket
+        S3Key: target/api-0.0.1-SNAPSHOT-lambda-package.zip
+
+
+#  MyLambdaFunction:
+#    Type: AWS::Lambda::Function
+#    Properties:
+#      FunctionName: ArtogradApiSpringBootLambda
+#      Handler: com.artograd.aip.MyHandler::handleRequest
+#      Role: !ImportValue LambdaExecutionRoleArn
+#      Runtime: java21
+#      MemorySize: 512
+#      Timeout: 30
+#      Code:
+#        S3Bucket: !Ref ArtogradApiS3Bucket
+#        S3Key: artograd-api.jar
