@@ -13,7 +13,7 @@ Resources:
       ApiId: !Ref MyApiGatewayV2
       IntegrationType: AWS_PROXY
       IntegrationUri: !Sub "arn:aws:apigateway:eu-central-1:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-central-1:065233777761:function:ArtogradApiSpringBootLambda/invocations"
-      IntegrationMethod: ANY
+      IntegrationMethod: POST
       PayloadFormatVersion: "1.0"  # Добавленный параметр
 
   MyApiGatewayV2Route:
