@@ -12,5 +12,5 @@ Resources:
       Timeout: 30
       PackageType: Zip
       Code:
-        S3Bucket: artograd-api-s3-bucket
+        S3Bucket: artograd-api-bucket
         S3Key: target/api-0.0.1-SNAPSHOT-lambda-package.zip
