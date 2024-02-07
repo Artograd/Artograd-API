@@ -74,6 +74,7 @@
                 </plugins>
             </build>
         </profile>
+
         <profile>
             <id>assembly-zip</id>
             <activation>
@@ -81,6 +82,7 @@
             </activation>
             <build>
                 <plugins>
+
                     <!-- don't build a jar, we'll use the classes dir -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
