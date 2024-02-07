@@ -6,8 +6,6 @@ Resources:
     Properties:
       Name: ArtogradApiGatewayV2
       ProtocolType: HTTP
-      Target: !Sub "integrations/ArtogradApiSpringBootLambda"
-      RouteSelectionExpression: '${request.method} ${request.path}'
 
   MyApiGatewayV2Integration:
     Type: AWS::ApiGatewayV2::Integration
