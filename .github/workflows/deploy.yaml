@@ -85,12 +85,13 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-central-1
-      - name: Get Lambda Function ARN
-        id: get-lambda-arn
+      - name: Get Lambda Function name and arn
+        id: get-lambda-info
         run: |
           LAMBDA_FUNCTION_NAME="ArtogradApiSpringBootLambda"
           LAMBDA_ARN=$(aws lambda get-function --function-name $LAMBDA_FUNCTION_NAME --query 'Configuration.FunctionArn' --output text)
           echo "::set-output name=lambda-arn::$LAMBDA_ARN"
+          echo "::set-output name=lambda-name::LAMBDA_FUNCTION_NAME"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -103,4 +104,6 @@ jobs:
           template: cloudformation/api.yaml
           role-arn: arn:aws:iam::${{ steps.creds.outputs.aws-account-id }}:role/github-actions-cloudformation-stack-role
           no-fail-on-empty-changeset: "1"
-          parameter-overrides: LambdaFunctionArn=${{ steps.get-lambda-arn.outputs.lambda-arn }}
+          parameter-overrides: >- 
+            LambdaFunctionArn=${{ steps.get-lambda-info.outputs.lambda-arn }},
+            LambdaFunctionName=${{ steps.get-lambda-info.outputs.lambda-name }}

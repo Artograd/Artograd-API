@@ -4,6 +4,9 @@ Parameters:
   LambdaFunctionArn:
     Type: String
     Description: ARN of your Lambda function
+  LambdaFunctionName:
+    Type: String
+    Description: Lambda function name
 
 Resources:
   ArtogradApiGatewayV2:
@@ -27,6 +30,14 @@ Resources:
       ApiId: !Ref ArtogradApiGatewayV2
       RouteKey: '$default'
       Target: !Sub "integrations/${ArtogradApiGatewayV2Integration}"
+
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref LambdaFunctionName
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ArtogradApiGatewayV2}/*/*/*"
 
 Outputs:
   ArtogradApiGatewayV2InvokeUrl:
