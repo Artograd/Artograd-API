@@ -35,7 +35,7 @@ Resources:
     Type: AWS::ApiGatewayV2::Stage
     Properties:
       ApiId: !Ref ArtogradApiGatewayV2
-      StageName: 'default'
+      StageName: '$default'
       AutoDeploy: true
 
   LambdaInvokePermission:
