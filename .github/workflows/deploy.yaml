@@ -5,68 +5,68 @@ on:
 
 name: Deploy
 jobs:
-#  build-and-upload:
-#    name: Build application and application to S3 bucket
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v2
-#      - name: Set up JDK
-#        uses: actions/setup-java@v2
-#        with:
-#          distribution: 'adopt'
-#          java-version: '21'
-#      - name: Build SpringBoot JAR
-#        run: |
-#          mvn clean install
-#        env:
-#          AWS_COGNITO_USER_POOL_URI: ${{ secrets.AWS_COGNITO_USER_POOL_URI }}
-#      - name: Upload to S3
-#        uses: jakejarvis/s3-sync-action@master
-#        with:
-#          args: --follow-symlinks --delete --exclude '*' --include 'target/*.zip'
-#        env:
-#          AWS_S3_BUCKET: artograd-api-bucket
-#          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#          aws-region: eu-central-1
-#        if: success()
-#
-#  deploy-lambda:
-#    name: Deploy lambda function
-#    runs-on: ubuntu-latest
-#    needs: build-and-upload
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v2
-#      - name: Configure environment name
-#        id: env-name
-#        env:
-#          REPO: ${{ github.repository }}
-#        run: |
-#          ENVIRONMENT=`echo $REPO | tr "/" "-"`
-#          echo "Environment name: $ENVIRONMENT"
-#          echo "::set-output name=environment::$ENVIRONMENT"
-#      - name: Configure AWS credentials
-#        id: creds
-#        uses: aws-actions/configure-aws-credentials@v1
-#        with:
-#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#          aws-region: eu-central-1
-#      - name: Deploy lambda function
-#        id: deploy-lambda-function
-#        uses: aws-actions/aws-cloudformation-github-deploy@v1
-#        with:
-#          name: ${{ steps.env-name.outputs.environment }}-lambda
-#          template: cloudformation/lambda.yaml
-#          role-arn: arn:aws:iam::${{ steps.creds.outputs.aws-account-id }}:role/github-actions-cloudformation-stack-role
-#          no-fail-on-empty-changeset: "1"
+  build-and-upload:
+    name: Build application and application to S3 bucket
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '21'
+      - name: Build SpringBoot JAR
+        run: |
+          mvn clean install
+        env:
+          AWS_COGNITO_USER_POOL_URI: ${{ secrets.AWS_COGNITO_USER_POOL_URI }}
+      - name: Upload to S3
+        uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --follow-symlinks --delete --exclude '*' --include 'target/*.zip'
+        env:
+          AWS_S3_BUCKET: artograd-api-bucket
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+        if: success()
+
+  deploy-lambda:
+    name: Deploy lambda function
+    runs-on: ubuntu-latest
+    needs: build-and-upload
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Configure environment name
+        id: env-name
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          ENVIRONMENT=`echo $REPO | tr "/" "-"`
+          echo "Environment name: $ENVIRONMENT"
+          echo "::set-output name=environment::$ENVIRONMENT"
+      - name: Configure AWS credentials
+        id: creds
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+      - name: Deploy lambda function
+        id: deploy-lambda-function
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: ${{ steps.env-name.outputs.environment }}-lambda
+          template: cloudformation/lambda.yaml
+          role-arn: arn:aws:iam::${{ steps.creds.outputs.aws-account-id }}:role/github-actions-cloudformation-stack-role
+          no-fail-on-empty-changeset: "1"
 
   deploy-API:
     name: Deploy API for lambda
     runs-on: ubuntu-latest
-#    needs: deploy-lambda
+    needs: deploy-lambda
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -90,7 +90,6 @@ jobs:
         run: |
           LAMBDA_FUNCTION_NAME="ArtogradApiSpringBootLambda"
           LAMBDA_ARN=$(aws lambda get-function --function-name $LAMBDA_FUNCTION_NAME --query 'Configuration.FunctionArn' --output text)
-          LAMBDA_NAME=$(aws lambda get-function --function-name $LAMBDA_FUNCTION_NAME --query 'Configuration.FunctionName' --output text)
           echo "::set-output name=lambda-arn::$LAMBDA_ARN"
           echo "::set-output name=lambda-name::$LAMBDA_FUNCTION_NAME"
         env:
