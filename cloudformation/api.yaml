@@ -12,23 +12,23 @@ Resources:
       Name: ArtogradApiGatewayV2
       ProtocolType: HTTP
 
-  MyApiGatewayV2Integration:
+  ArtogradApiGatewayV2Integration:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
-      ApiId: "ArtogradApiGatewayV2"
+      ApiId: !Ref ArtogradApiGatewayV2
       IntegrationType: AWS_PROXY
       IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaFunctionArn}/invocations"
       IntegrationMethod: POST
       PayloadFormatVersion: "1.0"
 
-  MyApiGatewayV2Route:
+  ArtogradApiGatewayV2Route:
     Type: AWS::ApiGatewayV2::Route
     Properties:
-      ApiId: "ArtogradApiGatewayV2"
+      ApiId: !Ref ArtogradApiGatewayV2
       RouteKey: '$default'
-      Target: !Sub "integrations/${ArtogradApiGatewayV2.Id}"
+      Target: !Sub "integrations/${ArtogradApiGatewayV2Integration.Id}"
 
 Outputs:
-  ApiGatewayV2InvokeUrl:
+  ArtogradApiGatewayV2InvokeUrl:
     Value: !Sub "https://${ArtogradApiGatewayV2}.execute-api.${AWS::Region}.amazonaws.com/"
     Description: URL to invoke the HTTP API
