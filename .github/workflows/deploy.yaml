@@ -90,8 +90,9 @@ jobs:
         run: |
           LAMBDA_FUNCTION_NAME="ArtogradApiSpringBootLambda"
           LAMBDA_ARN=$(aws lambda get-function --function-name $LAMBDA_FUNCTION_NAME --query 'Configuration.FunctionArn' --output text)
+#          LAMBDA_NAME=$(aws lambda get-function --function-name $LAMBDA_FUNCTION_NAME --query 'Configuration.FunctionName' --output text)
           echo "::set-output name=lambda-arn::$LAMBDA_ARN"
-          echo "::set-output name=lambda-name::LAMBDA_FUNCTION_NAME"
+          echo "::set-output name=lambda-name::$LAMBDA_FUNCTION_NAME"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
