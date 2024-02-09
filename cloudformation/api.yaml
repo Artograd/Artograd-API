@@ -1,5 +1,10 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
+Parameters:
+  LambdaFunctionArn:
+    Type: String
+    Description: ARN of your Lambda function
+
 Resources:
   ArtogradApiGatewayV2:
     Type: AWS::ApiGatewayV2::Api
