@@ -31,6 +31,13 @@ Resources:
       RouteKey: '$default'
       Target: !Sub "integrations/${ArtogradApiGatewayV2Integration}"
 
+  ArtogradApiGatewayV2Stage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref ArtogradApiGatewayV2
+      StageName: 'default'
+      AutoDeploy: true
+
   LambdaInvokePermission:
     Type: AWS::Lambda::Permission
     Properties:
