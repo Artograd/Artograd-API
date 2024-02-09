@@ -26,7 +26,7 @@ Resources:
     Properties:
       ApiId: !Ref ArtogradApiGatewayV2
       RouteKey: '$default'
-      Target: !Sub "integrations/${ArtogradApiGatewayV2Integration.Id}"
+      Target: !Sub "integrations/${ArtogradApiGatewayV2Integration}"
 
 Outputs:
   ArtogradApiGatewayV2InvokeUrl:
