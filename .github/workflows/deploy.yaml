@@ -2,6 +2,10 @@ on:
   push:
     branches:
       - EPMGCIPART-8-ci-cd-pipeline
+  pull_request:
+    branches:
+      - dev
+      - master
 
 name: Deploy
 jobs:
