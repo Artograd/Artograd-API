@@ -7,14 +7,14 @@ name: Deploy
 jobs:
   build-and-upload:
     name: Build application and application to S3 bucket
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
-          distribution: 'adopt'
+          distribution: 'corretto'
           java-version: '21'
       - name: Build SpringBoot JAR
         run: |
@@ -26,7 +26,7 @@ jobs:
         with:
           args: --follow-symlinks --delete --exclude '*' --include 'target/*.zip'
         env:
-          AWS_S3_BUCKET: artograd-api-bucket
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-central-1
@@ -34,7 +34,7 @@ jobs:
 
   deploy-lambda:
     name: Deploy lambda function
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: build-and-upload
     steps:
       - name: Checkout
@@ -65,7 +65,7 @@ jobs:
 
   deploy-API:
     name: Deploy API for lambda
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: deploy-lambda
     steps:
       - name: Checkout
