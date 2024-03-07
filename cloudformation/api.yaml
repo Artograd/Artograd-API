@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  LambdaFunctionArn:
+    Type: String
+    Description: ARN of your Lambda function
+  LambdaFunctionName:
+    Type: String
+    Description: Lambda function name
+
+Resources:
+  ArtogradApiGatewayV2:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: ArtogradApiGatewayV2
+      ProtocolType: HTTP
+
+  ArtogradApiGatewayV2Integration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ArtogradApiGatewayV2
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaFunctionArn}/invocations"
+      IntegrationMethod: POST
+      PayloadFormatVersion: "1.0"
+
+  ArtogradApiGatewayV2Route:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ArtogradApiGatewayV2
+      RouteKey: '$default'
+      Target: !Sub "integrations/${ArtogradApiGatewayV2Integration}"
+
+  ArtogradApiGatewayV2Stage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref ArtogradApiGatewayV2
+      StageName: '$default'
+      AutoDeploy: true
+
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref LambdaFunctionName
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ArtogradApiGatewayV2}/*/*"
+
+Outputs:
+  ArtogradApiGatewayV2InvokeUrl:
+    Value: !Sub "https://${ArtogradApiGatewayV2}.execute-api.${AWS::Region}.amazonaws.com/"
+    Description: URL to invoke the HTTP API
