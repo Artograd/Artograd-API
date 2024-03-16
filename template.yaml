@@ -24,6 +24,10 @@ Resources:
       Environment:
         Variables:
           MAIN_CLASS: com.artograd.api.Application
+          AWS_COGNITO_USER_POOL_URI:
+          ARTOGRAD_MONGO_DB_CONNECTTION:
+          AWS_COGNITO_USER_POOL_ID:
+          CLOUDFRONT_DISTRIBUTION_DOMAIN:
       Events:
         HttpApiEvent:
           Type: HttpApi
