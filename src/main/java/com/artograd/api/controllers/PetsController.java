@@ -12,15 +12,9 @@
  */
 package com.artograd.api.controllers;
 
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-
 import com.artograd.api.model.Pet;
 import com.artograd.api.model.PetData;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.Optional;
@@ -28,7 +22,6 @@ import java.util.UUID;
 
 
 @RestController
-@EnableWebMvc
 public class PetsController {
 
     @RequestMapping(path = "/pets", method = RequestMethod.POST)
