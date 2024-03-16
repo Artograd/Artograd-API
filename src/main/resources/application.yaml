@@ -19,6 +19,6 @@ aws:
   s3:
     bucket-name: artograd-media
   cloudfront:
-    distribution-domain: https://d197uxz9wzvazk.cloudfront.net
+    distribution-domain: ${CLOUDFRONT_DISTRIBUTION_DOMAIN}
   cognito:
     userPoolId: ${AWS_COGNITO_USER_POOL_ID}
