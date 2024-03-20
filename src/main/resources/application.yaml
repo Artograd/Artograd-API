@@ -22,3 +22,6 @@ aws:
     distribution-domain: ${CLOUDFRONT_DISTRIBUTION_DOMAIN}
   cognito:
     userPoolId: ${AWS_COGNITO_USER_POOL_ID}
+
+artograd:
+  env: ${ARTOGRAD_API_ENV}

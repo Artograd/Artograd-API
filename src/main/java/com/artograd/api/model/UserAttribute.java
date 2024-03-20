@@ -1,11 +1,18 @@
 package com.artograd.api.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Schema
+@Getter
+@Setter
+@NoArgsConstructor
 public class UserAttribute {
 	
 	private String name;
+
 	private String value;
 	
 	public UserAttribute(String name, String value) {
@@ -13,16 +20,5 @@ public class UserAttribute {
 		this.name = name;
 		this.value = value;
 	}
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
-	public String getValue() {
-		return value;
-	}
-	public void setValue(String value) {
-		this.value = value;
-	}
+
 }
