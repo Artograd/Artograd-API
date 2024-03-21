@@ -18,11 +18,11 @@ public class CitiesController {
 	@Autowired
     private CitiesService citiesService;
 
-    @SuppressWarnings("unchecked")
+	@SuppressWarnings("unchecked")
 	@GetMapping
-    public ResponseEntity<City> getAllCountries() {
+    public ResponseEntity<List<City>> getAllCities() {
     	List<City> cities = citiesService.getAllCities();
-        return (ResponseEntity<City>)CommonUtils.addCacheHeader(cities, 60);
+        return (ResponseEntity<List<City>>)CommonUtils.addCacheHeader(cities, 60);
     }
 }
 

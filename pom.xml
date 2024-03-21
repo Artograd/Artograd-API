@@ -84,8 +84,28 @@
             <version>2.0.0-M2</version>
         </dependency>
     </dependencies>
+    
+    <build>
+		<finalName>artograd-api</finalName>
+		<plugins>
+			<plugin>
+			    <groupId>org.apache.maven.plugins</groupId>
+			    <artifactId>maven-shade-plugin</artifactId>
+			    <executions>
+			        <execution>
+			            <goals>
+			                <goal>shade</goal>
+			            </goals>
+			            <configuration>
+			                <shadedArtifactAttached>true</shadedArtifactAttached>
+			        </configuration>
+			        </execution>
+			    </executions>
+			</plugin>
+		</plugins>
+	</build>
 
-    <profiles>
+    <!-- profiles>
         <profile>
             <id>shaded-jar</id>
             <build>
@@ -123,7 +143,6 @@
             </activation>
             <build>
                 <plugins>
-                    <!-- don't build a jar, we'll use the classes dir -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-jar-plugin</artifactId>
@@ -143,7 +162,6 @@
                             <skip>true</skip>
                         </configuration>
                     </plugin>
-                    <!-- select and copy only runtime dependencies to a temporary lib folder -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-dependency-plugin</artifactId>
@@ -186,6 +204,6 @@
                 </plugins>
             </build>
         </profile>
-    </profiles>
+    </profiles -->
 
 </project>
