@@ -1,5 +1,6 @@
 package com.artograd.api.controllers;
 
+import com.artograd.api.model.FileInfo;
 import com.artograd.api.model.system.UserTokenClaims;
 import com.artograd.api.services.CognitoService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -117,26 +118,5 @@ public class S3FileUploadController {
             return "image";
         }
         return "attachment";
-    }
-
-    // Inner class to encapsulate file info response
-    static class FileInfo {
-        public String path;
-        public String snapPath;
-        public String name;
-        public long size;
-        public int id;
-        public String type;
-        public String extension;
-
-        public FileInfo(String path, String snapPath, String name, long size, int id, String type, String extension) {
-            this.path = path;
-            this.snapPath = snapPath;
-            this.name = name;
-            this.size = size;
-            this.id = id;
-            this.type = type;
-            this.extension = extension;
-        }
     }
 }

@@ -41,8 +41,11 @@ public class TenderService {
         return tenderRepository.findById(id).orElse(null);
     }
 
-    public Tender updateTender(Tender tender) {
-    	tender.setModifiedAt( new Date() );
+    public Tender updateTender(Tender tender, boolean updateDate) {
+    	if ( updateDate ) {
+    		tender.setModifiedAt( new Date() );
+    	}
+    	
     	tender = setOwnerData(tender);
     	return tenderRepository.save(tender);
     }
@@ -126,5 +129,11 @@ public class TenderService {
     		
     	}
     	return tender;
+    }
+    
+    public boolean isTenderOwner(String tenderId, String username) {
+        return tenderRepository.findById(tenderId)
+                .map(tender -> tender.getOwnerId().equals(username))
+                .orElse(false);
     }
 }

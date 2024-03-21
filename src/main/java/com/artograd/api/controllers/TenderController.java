@@ -53,7 +53,7 @@ public class TenderController {
     	
     	if ( isDenied(id, request) ) { return new ResponseEntity<>(HttpStatus.FORBIDDEN);}
     	
-        Tender updatedTender = tenderService.updateTender(tender);
+        Tender updatedTender = tenderService.updateTender(tender, true);
         if (updatedTender != null) {
             return new ResponseEntity<>(updatedTender, HttpStatus.OK);
         }
