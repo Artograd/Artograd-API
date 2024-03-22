@@ -16,14 +16,11 @@ import java.util.List;
 @RequestMapping("/tenders")
 public class TenderController {
 
-    private final TenderService tenderService;
-    private final CognitoService cognitoService;
-
     @Autowired
-    public TenderController(TenderService tenderService, CognitoService cognitoService) {
-        this.tenderService = tenderService;
-        this.cognitoService = cognitoService;
-    }
+    private TenderService tenderService;
+	
+    @Autowired
+    private CognitoService cognitoService;
 
     @PostMapping
     @SecurityRequirement(name = "bearerAuth")
