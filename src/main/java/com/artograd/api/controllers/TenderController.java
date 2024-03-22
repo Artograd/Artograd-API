@@ -4,8 +4,10 @@ import com.artograd.api.model.Tender;
 import com.artograd.api.model.system.UserTokenClaims;
 import com.artograd.api.services.CognitoService;
 import com.artograd.api.services.TenderService;
+import com.artograd.api.utils.ResponseHandler;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,53 +27,53 @@ public class TenderController {
 
     @PostMapping
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<Tender> createTender(@RequestBody Tender tender, HttpServletRequest request) {
+    public ResponseEntity<Map<String, Object>> createTender(@RequestBody Tender tender, HttpServletRequest request) {
     	
     	UserTokenClaims claims = cognitoService.getUserTokenClaims(request);
     	
     	//operation is allowed only for officer's token
     	if ( claims.getUsername() == null || !claims.getUsername().equals( tender.getOwnerId() ) || !claims.isOfficer() ) {
-    		return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+    		return ResponseHandler.generateResponse(HttpStatus.FORBIDDEN);
     	}
     	
     	Tender createdTender = tenderService.createTender(tender);
-        return new ResponseEntity<>(createdTender, HttpStatus.CREATED);
+        return ResponseHandler.generateResponse(createdTender, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Tender> getTender(@PathVariable String id) {
+    public ResponseEntity<Map<String, Object>> getTender(@PathVariable String id) {
         Tender tender = tenderService.getTender(id);
         if (tender != null) {
-            return new ResponseEntity<>(tender, HttpStatus.OK);
+            return ResponseHandler.generateResponse(tender, HttpStatus.OK);
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND);
     }
 
     @PutMapping("/{id}")
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<Tender> updateTender(@PathVariable String id, @RequestBody Tender tender, HttpServletRequest request) {
+    public ResponseEntity<Map<String, Object>> updateTender(@PathVariable String id, @RequestBody Tender tender, HttpServletRequest request) {
     	
-    	if ( isDenied(id, request) ) { return new ResponseEntity<>(HttpStatus.FORBIDDEN);}
+    	if ( isDenied(id, request) ) { return ResponseHandler.generateResponse(HttpStatus.FORBIDDEN);}
     	
         Tender updatedTender = tenderService.updateTender(tender);
         if (updatedTender != null) {
-            return new ResponseEntity<>(updatedTender, HttpStatus.OK);
+            return ResponseHandler.generateResponse(updatedTender, HttpStatus.OK);
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND);
     }
 
     @DeleteMapping("/{id}")
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<Void> deleteTender(@PathVariable String id, HttpServletRequest request) {
+    public ResponseEntity<Map<String, Object>> deleteTender(@PathVariable String id, HttpServletRequest request) {
     	
-    	if ( isDenied(id, request) ) { return new ResponseEntity<>(HttpStatus.FORBIDDEN);}
+    	if ( isDenied(id, request) ) { return ResponseHandler.generateResponse(HttpStatus.FORBIDDEN);}
     	
         tenderService.deleteTender(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return ResponseHandler.generateResponse(HttpStatus.NO_CONTENT);
     }
 
     @GetMapping
-    public ResponseEntity<List<Tender>> searchTenders(
+    public ResponseEntity<Map<String, Object>> searchTenders(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) List<String> locationLeafIds,
             @RequestParam(required = false) List<String> statuses,
@@ -83,15 +85,15 @@ public class TenderController {
     	
     	List<Tender> tenders = tenderService.searchTenders(title, locationLeafIds, statuses, ownerId, 
     			page, size, sortBy, sortOrder);
-        return new ResponseEntity<>(tenders, HttpStatus.OK);
+        return ResponseHandler.generateResponse(tenders, HttpStatus.OK);
     }
     
     @GetMapping("/count/{ownerId}")
-    public ResponseEntity<Long> getTenderCountByOwnerIdAndStatuses(
+    public ResponseEntity<Map<String, Object>> getTenderCountByOwnerIdAndStatuses(
             @PathVariable String ownerId,
             @RequestParam(required = false) List<String> statuses) {
         long count = tenderService.getCountByOwnerIdAndStatusIn(ownerId, statuses);
-        return ResponseEntity.ok(count);
+        return ResponseHandler.generateResponse(count, HttpStatus.OK);
     }
     
     /**

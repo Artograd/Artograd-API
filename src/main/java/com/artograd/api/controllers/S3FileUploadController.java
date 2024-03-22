@@ -2,8 +2,10 @@ package com.artograd.api.controllers;
 
 import com.artograd.api.model.system.UserTokenClaims;
 import com.artograd.api.services.CognitoService;
+import com.artograd.api.utils.ResponseHandler;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Map;
 import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -45,17 +47,17 @@ public class S3FileUploadController {
 	
     @PostMapping("/uploadFile/{tenderFolder}/{subFolder}")
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<FileInfo> uploadFile(
+    public ResponseEntity<Map<String, Object>> uploadFile(
     		@PathVariable String tenderFolder, 
     		@PathVariable String subFolder, 
     		@RequestParam("file") MultipartFile file, HttpServletRequest request) {
         if (file.isEmpty()) {
-        	return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        	return ResponseHandler.generateResponse(HttpStatus.BAD_REQUEST);
         }
         
         UserTokenClaims claims = cognitoService.getUserTokenClaims(request);
     	if ( StringUtils.isBlank( claims.getUsername() )) {//operation is allowed only to authorized users
-    		return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+    		return ResponseHandler.generateResponse(HttpStatus.FORBIDDEN);
     	}
 
         String originalFilename = file.getOriginalFilename();
@@ -71,7 +73,7 @@ public class S3FileUploadController {
                     .build(),
                     RequestBody.fromBytes(file.getBytes()));
         } catch (Exception e) {
-        	return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        	return ResponseHandler.generateResponse(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         // Construct the CloudFront URL for the file
@@ -100,14 +102,14 @@ public class S3FileUploadController {
 	            snapPath = cloudFrontDomainName + "/" + snapFileName;
             
 			} catch (IOException e) {
-				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+				return ResponseHandler.generateResponse(HttpStatus.INTERNAL_SERVER_ERROR);
 			}
         } else {
         	snapPath = fileUrl;
         }
 
         FileInfo fileInfo = new FileInfo(fileUrl, snapPath, originalFilename, file.getSize(), 0, fileType, extension);
-        return new ResponseEntity<>(fileInfo, HttpStatus.CREATED);
+        return ResponseHandler.generateResponse(fileInfo, HttpStatus.CREATED);
     }
 
     private String determineFileType(String extension) {
