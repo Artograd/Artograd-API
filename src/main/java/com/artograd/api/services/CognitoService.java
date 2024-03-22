@@ -21,6 +21,7 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CognitoService {
@@ -31,9 +32,9 @@ public class CognitoService {
     public boolean deleteUserByUsername(String userName) {
         try (CognitoIdentityProviderClient cognitoClient = CognitoIdentityProviderClient.builder().build()) {
             AdminDeleteUserRequest deleteRequest = AdminDeleteUserRequest.builder()
-                    .userPoolId(userPoolId)
-                    .username(userName)
-                    .build();
+                .userPoolId(userPoolId)
+                .username(userName)
+                .build();
 
             cognitoClient.adminDeleteUser(deleteRequest);
             return true;
@@ -48,16 +49,16 @@ public class CognitoService {
             List<AttributeType> attributeTypes = new ArrayList<>();
             for (UserAttribute userAttribute : attributes) {
                 attributeTypes.add(AttributeType.builder()
-                        .name(userAttribute.getName())
-                        .value(userAttribute.getValue())
-                        .build());
+                    .name(userAttribute.getName())
+                    .value(userAttribute.getValue())
+                    .build());
             }
 
             AdminUpdateUserAttributesRequest updateRequest = AdminUpdateUserAttributesRequest.builder()
-                    .userPoolId(userPoolId)
-                    .username(userName)
-                    .userAttributes(attributeTypes)
-                    .build();
+                .userPoolId(userPoolId)
+                .username(userName)
+                .userAttributes(attributeTypes)
+                .build();
 
             cognitoClient.adminUpdateUserAttributes(updateRequest);
             return true;
@@ -67,85 +68,97 @@ public class CognitoService {
         }
     }
 
-    public User getUserByUsername(String username) {
+    public Optional<User> getUserByUsername(String username) {
         try (CognitoIdentityProviderClient cognitoClient = CognitoIdentityProviderClient.builder().build()) {
             AdminGetUserRequest getUserRequest = AdminGetUserRequest.builder()
-                    .userPoolId(userPoolId)
-                    .username(username)
-                    .build();
+                .userPoolId(userPoolId)
+                .username(username)
+                .build();
 
             AdminGetUserResponse getUserResponse = cognitoClient.adminGetUser(getUserRequest);
             List<UserAttribute> userAttrsResult = new ArrayList<>();
             for (AttributeType attr : getUserResponse.userAttributes()) {
                 userAttrsResult.add(new UserAttribute(attr.name(), attr.value()));
             }
-            return new User(userAttrsResult);
+            return Optional.ofNullable(new User(userAttrsResult));
         } catch (Exception e) {
             System.err.println("Error fetching user by username: " + e.getMessage());
-            return null;
+            return Optional.ofNullable(null);
         }
     }
+    
+    public Optional<UserTokenClaims> getUserTokenClaims(HttpServletRequest request) {
+        try {
+            String cognitoIssuer = getCognitoIssuer(userPoolId);
+            JwkProvider provider = new JwkProviderBuilder(cognitoIssuer).build();
+            Algorithm algorithm = Algorithm.RSA256(new CognitoRSAKeyProvider(provider));
 
-    public UserTokenClaims getUserTokenClaims(HttpServletRequest request) {
+            JWTVerifier verifier = JWT.require(algorithm)
+                    .withIssuer(cognitoIssuer)
+                    .build();
+
+            String token = CommonUtils.parseToken(request);
+            if (token != null) {
+                DecodedJWT jwt = verifier.verify(token);
+                return Optional.of(extractClaims(jwt));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Optional.empty();
+    }
+
+    private String getCognitoIssuer(String userPoolId) {
         String region = userPoolId.substring(0, userPoolId.indexOf("_"));
-        String cognitoIssuer = String.format("https://cognito-idp.%s.amazonaws.com/%s", region, userPoolId);
-
-        JwkProvider provider = new JwkProviderBuilder(cognitoIssuer).build();
-
-        RSAKeyProvider keyProvider = new RSAKeyProvider() {
-            @Override
-            public RSAPublicKey getPublicKeyById(String kid) {
-                // Received 'kid' value might be null if it wasn't defined in the Token's header
-                try {
-                    return (RSAPublicKey) provider.get(kid).getPublicKey();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return null;
-                }
-            }
-
-            @Override
-            public RSAPrivateKey getPrivateKey() {
-                return null; // Private key is not needed for token verification
-            }
-
-            @Override
-            public String getPrivateKeyId() {
-                return null; // Private key ID is not needed for token verification
-            }
-        };
-
-        Algorithm algorithm = Algorithm.RSA256(keyProvider);
-        JWTVerifier verifier = JWT.require(algorithm)
-                .withIssuer(cognitoIssuer)
-                .build();
-
-        String token = CommonUtils.parseToken(request);
-        if (token != null) {
-            DecodedJWT jwt = verifier.verify(CommonUtils.parseToken(request));
-            String[] roles = jwt.getClaim("cognito:groups").asArray(String.class);
-
-            UserTokenClaims tokenClaims = new UserTokenClaims();
-            tokenClaims.setUsername(jwt.getClaim("cognito:username").asString());
-            tokenClaims.setArtist(hasRole(roles, "Artists"));
-            tokenClaims.setOfficer(hasRole(roles, "Officials"));
-
-            return tokenClaims;
-        } else {
-            return new UserTokenClaims();
-        }
+        return String.format("https://cognito-idp.%s.amazonaws.com/%s", region, userPoolId);
     }
 
-    private boolean hasRole(String[] roles, String r) {
-        if (roles == null) {
-            return false;
-        }
+    private UserTokenClaims extractClaims(DecodedJWT jwt) {
+        UserTokenClaims tokenClaims = new UserTokenClaims();
+        tokenClaims.setUsername(jwt.getClaim("cognito:username").asString());
+        String[] roles = jwt.getClaim("cognito:groups").asArray(String.class);
+        tokenClaims.setArtist(hasRole(roles, "Artists"));
+        tokenClaims.setOfficer(hasRole(roles, "Officials"));
+        return tokenClaims;
+    }
 
-        for (String role : roles) {
-            if (role.equals(r)) {
-                return true;
+    private boolean hasRole(String[] roles, String role) {
+        if (roles != null) {
+            for (String r : roles) {
+                if (r.equals(role)) {
+                    return true;
+                }
             }
         }
         return false;
+    }
+
+    private static class CognitoRSAKeyProvider implements RSAKeyProvider {
+
+        private final JwkProvider jwkProvider;
+
+        public CognitoRSAKeyProvider(JwkProvider jwkProvider) {
+            this.jwkProvider = jwkProvider;
+        }
+
+        @Override
+        public RSAPublicKey getPublicKeyById(String kid) {
+            try {
+                return (RSAPublicKey) jwkProvider.get(kid).getPublicKey();
+            } catch (Exception e) {
+                e.printStackTrace(); // Consider proper logging
+                return null;
+            }
+        }
+
+        @Override
+        public RSAPrivateKey getPrivateKey() {
+            return null; // Not needed for token verification
+        }
+
+        @Override
+        public String getPrivateKeyId() {
+            return null; // Not needed for token verification
+        }
     }
 }

@@ -1,149 +1,139 @@
 package com.artograd.api.services;
 
 import com.artograd.api.model.Proposal;
-import com.artograd.api.model.Tender;
 import com.artograd.api.model.User;
 import com.artograd.api.model.UserAttribute;
 
 import org.apache.commons.lang3.StringUtils;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class ProposalService {
 
-    @Autowired
+	@Autowired
     private TenderService tenderService;
-    
+
     @Autowired
     private CognitoService cognitoService;
     
-    public Proposal getProposal(String tenderId, String proposalId) {
-    	Tender tender = tenderService.getTender(tenderId);
-        if (tender == null) {
-        	return null;
-        }
-
-        return tender.getProposals().stream()
+    /**
+     * Retrieves a proposal by its ID within a specific tender.
+     *
+     * @param tenderId    The ID of the tender.
+     * @param proposalId  The ID of the proposal to find.
+     * @return An Optional containing the found proposal or empty if not found.
+     */
+    public Optional<Proposal> getProposal(String tenderId, String proposalId) {
+        return tenderService.getTender(tenderId)
+            .flatMap(tender -> tender.getProposals().stream()
                 .filter(proposal -> proposal.getId().equals(proposalId))
-                .findFirst()
-                .orElse(null); // Proposal not found
+                .findFirst());
     }
 
-    public Proposal createProposal(String tenderId, Proposal proposal) {
-    	Tender tender = tenderService.getTender(tenderId);
-        if (tender == null) {
-        	return null;
-        }
-        
-        if (tender.getProposals() == null) {
-            tender.setProposals(new ArrayList<>());
-        }
+    /**
+     * Creates a new proposal in the specified tender.
+     *
+     * @param tenderId  The ID of the tender where the proposal will be added.
+     * @param proposal  The proposal object to add.
+     * @return An Optional containing the created proposal or empty if the tender doesn't exist.
+     */
+    public Optional<Proposal> createProposal(String tenderId, Proposal proposal) {
+        return tenderService.getTender(tenderId)
+            .map(tender -> {
+                proposal.setId(generateProposalId());
+                proposal.setCreatedAt(new Date());
+                proposal.setModifiedAt(new Date());
 
-        proposal.setId(generateProposalId()); 
-        proposal.setCreatedAt(new Date());
-        proposal.setModifiedAt(new Date());
-        
-        proposal = setOwnerData(proposal);
-        
-        tender.getProposals().add(proposal);
-        
-        tenderService.updateTender(tender, false);
-        return proposal;
+                enrichProposalWithOwnerData(proposal);
+
+                tender.getProposals().add(proposal);
+                tenderService.updateTender(tender, false);
+                return proposal;
+            });
     }
 
-    public Proposal updateProposal(String tenderId, String proposalId, Proposal updatedProposal) {
-        Tender tender = tenderService.getTender(tenderId);
-        if (tender == null) {
-            return null; // Tender not found
-        }
-
-        List<Proposal> proposals = tender.getProposals();
-        String existingUserName = null;
-        int index = -1;
-        for (int i = 0; i < proposals.size(); i++) {
-            if (proposals.get(i).getId().equals(proposalId)) {
-                index = i;
-                existingUserName = proposals.get(i).getOwnerId();
-                break;
-            }
-        }
-
-        if (index != -1) {
-            updatedProposal.setId(proposalId); // Preserve the original ID
-            updatedProposal.setModifiedAt(new Date()); // Set the modification date
-            
-            updatedProposal.setOwnerId( existingUserName );
-            
-            updatedProposal = setOwnerData(updatedProposal);
-            
-            proposals.set(index, updatedProposal); // Replace the proposal in the list
-            tenderService.updateTender(tender, false); // Save the updated tender
-            return updatedProposal;
-        }
-
-        return null; // Proposal not found
-    }
-
-
+    /**
+     * Deletes a proposal from a tender.
+     *
+     * @param tenderId    The ID of the tender from which the proposal will be deleted.
+     * @param proposalId  The ID of the proposal to delete.
+     * @return true if the proposal was successfully deleted, false otherwise.
+     */
     public boolean deleteProposal(String tenderId, String proposalId) {
-    	Tender tender = tenderService.getTender(tenderId);
-        if (tender == null) {
-        	return false;
-        }
-
-        List<Proposal> updatedProposals = tender.getProposals().stream()
-                .filter(proposal -> !proposal.getId().equals(proposalId))
-                .collect(Collectors.toList());
-
-        if (tender.getProposals().size() == updatedProposals.size()) {
-            // No proposal was removed, indicating it wasn't found
-            return false;
-        }
-
-        tender.setProposals(updatedProposals);
-        
-        tenderService.updateTender(tender, false);
-        return true;
-    }
-
-    private String generateProposalId() {
-        return java.util.UUID.randomUUID().toString().replace("-", "");
+        return tenderService.getTender(tenderId)
+            .map(tender -> {
+                boolean removed = tender.getProposals().removeIf(proposal -> proposal.getId().equals(proposalId));
+                if (removed) {
+                    tenderService.updateTender(tender, false);
+                }
+                return removed;
+            }).orElse(false);
     }
     
-    private Proposal setOwnerData(Proposal proposal) {
-    	String username = proposal.getOwnerId();
-    	if (StringUtils.isNotBlank(username)) {
-    		User user = cognitoService.getUserByUsername(username);
-    		if (user != null ) {
-    			List<UserAttribute> attributes = user.getAttributes();
-    			if ( attributes != null ) {
-    				String name = "";
-    				for (UserAttribute userAttribute : attributes) {
-        				if ( userAttribute.getName().equals("picture") ) {
-        					proposal.setOwnerPicture( userAttribute.getValue() );
-        				}
-        				if ( userAttribute.getName().equals("given_name") ) {
-        					name = userAttribute.getValue() + name;
-        				}
-        				if ( userAttribute.getName().equals("family_name") ) {
-        					name = name + " " + userAttribute.getValue();
-        				}
-        				if ( userAttribute.getName().equals("custom:organization") ) {
-        					proposal.setOwnerOrg( userAttribute.getValue() );
-        				}
-        			}
-    				
-    				proposal.setOwnerName( name.trim() );
-    			}
-    		}
-    		
-    	}
-    	return proposal;
+    /**
+     * Updates an existing proposal within a tender.
+     *
+     * @param tenderId         The ID of the tender containing the proposal.
+     * @param proposalId       The ID of the proposal to update.
+     * @param updatedProposal  The new proposal data to apply.
+     * @return An Optional containing the updated proposal or empty if not found.
+     */
+    public Optional<Proposal> updateProposal(String tenderId, String proposalId, Proposal updatedProposal) {
+        return tenderService.getTender(tenderId)
+            .flatMap(tender -> tender.getProposals().stream()
+                .filter(proposal -> proposal.getId().equals(proposalId))
+                .findFirst()
+                .map(proposal -> {
+                    updateExistingProposal(proposal, updatedProposal);
+                    tenderService.updateTender(tender, false);
+                    return proposal;
+                }));
+    }
+
+    private void updateExistingProposal(Proposal existingProposal, Proposal updatedProposal) {
+    	updatedProposal.setId(existingProposal.getId());
+    	updatedProposal.setCreatedAt(existingProposal.getCreatedAt()); // Preserve the original creation date
+    	updatedProposal.setModifiedAt(new Date()); // Update the modification date
+    	updatedProposal.setOwnerId(existingProposal.getOwnerId());
+        
+    	ModelMapper modelMapper = new ModelMapper();
+        modelMapper.map(updatedProposal, existingProposal);
+
+        enrichProposalWithOwnerData(existingProposal);
+    }
+
+    private void enrichProposalWithOwnerData(Proposal proposal) {
+        if (StringUtils.isNotBlank(proposal.getOwnerId())) {
+            cognitoService.getUserByUsername(proposal.getOwnerId())
+	            .ifPresent(user -> {
+	                proposal.setOwnerName(formatUserName(user));
+	                proposal.setOwnerPicture(findUserAttribute(user, "picture"));
+	                proposal.setOwnerOrg(findUserAttribute(user, "custom:organization"));
+	            });
+        }
+    }
+
+    private String formatUserName(User user) {
+        String givenName = findUserAttribute(user, "given_name");
+        String familyName = findUserAttribute(user, "family_name");
+        return String.format("%s %s", givenName, familyName).trim();
+    }
+
+    private String findUserAttribute(User user, String attributeName) {
+        return user.getAttributes().stream()
+            .filter(attr -> attr.getName().equals(attributeName))
+            .findFirst()
+            .map(UserAttribute::getValue)
+            .orElse("");
+    }
+    
+    private String generateProposalId() {
+        return UUID.randomUUID().toString().replace("-", "");
     }
 }
