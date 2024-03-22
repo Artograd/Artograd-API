@@ -45,7 +45,7 @@ public class TenderController {
     public ResponseEntity<Tender> updateTender(@PathVariable String id, @RequestBody Tender tender, HttpServletRequest request) {
         return isDenied(id, request) ?
             ResponseEntity.status(HttpStatus.FORBIDDEN).build() :
-            tenderService.updateTender(tender, true)
+            tenderService.updateTender(tender)
                 .map(updatedTender -> ResponseEntity.ok().body(updatedTender))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }

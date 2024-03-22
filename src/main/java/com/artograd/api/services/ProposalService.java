@@ -53,7 +53,7 @@ public class ProposalService {
                 enrichProposalWithOwnerData(proposal);
 
                 tender.getProposals().add(proposal);
-                tenderService.updateTender(tender, false);
+                tenderService.updateTender(tender);
                 return proposal;
             });
     }
@@ -70,7 +70,7 @@ public class ProposalService {
             .map(tender -> {
                 boolean removed = tender.getProposals().removeIf(proposal -> proposal.getId().equals(proposalId));
                 if (removed) {
-                    tenderService.updateTender(tender, false);
+                    tenderService.updateTender(tender);
                 }
                 return removed;
             }).orElse(false);
@@ -91,7 +91,7 @@ public class ProposalService {
                 .findFirst()
                 .map(proposal -> {
                     updateExistingProposal(proposal, updatedProposal);
-                    tenderService.updateTender(tender, false);
+                    tenderService.updateTender(tender);
                     return proposal;
                 }));
     }

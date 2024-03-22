@@ -39,7 +39,8 @@ public class TenderService {
      * @return The created tender.
      */
     public Tender createTender(Tender tender) {
-        enrichTenderWithOwnerDataAndTimestamps(tender, true);
+        enrichTenderWithOwnerDataAndTimestamps(tender);
+        tender.setCreatedAt( new Date() );
         return tenderRepository.save(tender);
     }
 
@@ -57,11 +58,11 @@ public class TenderService {
      * Updates an existing Tender.
      *
      * @param tender     The tender to update.
-     * @param updateDate If true, updates the modifiedAt timestamp to now.
      * @return Optional containing the updated tender if update is successful; otherwise, an empty Optional.
      */
-    public Optional<Tender> updateTender(Tender tender, boolean updateDate) {
-        enrichTenderWithOwnerDataAndTimestamps(tender, updateDate);
+    public Optional<Tender> updateTender(Tender tender) {
+    	tender.setCreatedAt( getTender(tender.getId()).get().getCreatedAt() );
+        enrichTenderWithOwnerDataAndTimestamps(tender);
         Tender savedTender = tenderRepository.save(tender);
         return Optional.ofNullable(savedTender);
     }
@@ -160,14 +161,9 @@ public class TenderService {
     /**
      * Enriches a tender with owner data and updates timestamps.
      */
-    private void enrichTenderWithOwnerDataAndTimestamps(Tender tender, boolean updateDate) {
-        if (updateDate) {
-            tender.setModifiedAt(new Date());
-            if (tender.getCreatedAt() == null) {
-                tender.setCreatedAt(tender.getModifiedAt());
-            }
-        }
-
+    private void enrichTenderWithOwnerDataAndTimestamps(Tender tender) {
+        tender.setModifiedAt(new Date());
+        
         if (StringUtils.isNotBlank(tender.getOwnerId())) {
             cognitoService.getUserByUsername(tender.getOwnerId())
                 .ifPresent(user -> {

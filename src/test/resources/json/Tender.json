@@ -1,0 +1,43 @@
+{
+  "title": "New Art Installation",
+  "description": "We are seeking proposals for a new public art installation in the downtown area to enhance the cultural appeal.",
+  "submissionStart": "2023-04-01T00:00:00Z",
+  "submissionEnd": "2023-05-01T00:00:00Z",
+  "expectedDelivery": "2024-01-01T00:00:00Z",
+  "category": [
+    "Sculpture",
+    "Mural"
+  ],
+  "location": {
+    "nestedLocation": {
+      "id": "location123",
+      "name": "Central Park",
+      "child": null
+    },
+    "geoPosition": {
+      "latitude": 40.785091,
+      "longitude": -73.968285
+    },
+    "addressLine": "Central Park, New York, NY",
+    "addressComment": "Near the main entrance"
+  },
+  "locationLeafId": "location123",
+  "ownerEmail": "official@example.com",
+  "showEmail": true,
+  "files": [
+    "https://example.com/file1.pdf",
+    "https://example.com/file2.jpg"
+  ],
+  "snapFiles": [
+    "https://example.com/snap1.jpg",
+    "https://example.com/snap2.jpg"
+  ],
+  "status": "PUBLISHED",
+  "ownerName": "City Arts Commission",
+  "ownerId": "artofficer_03",
+  "organization": "City Government",
+  "ownerPicture": "https://example.com/official_picture.jpg",
+  "createdAt": "2023-03-15T00:00:00Z",
+  "modifiedAt": "2023-03-20T00:00:00Z",
+  "proposals": []
+}

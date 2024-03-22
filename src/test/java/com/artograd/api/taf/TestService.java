@@ -4,6 +4,12 @@ import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityPr
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AuthFlowType;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.InitiateAuthRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.InitiateAuthResponse;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -59,6 +65,23 @@ public class TestService {
             return authResponse.authenticationResult().idToken();
         } catch (Exception e) {
             throw new RuntimeException("Authentication failed: " + e.getMessage(), e);
+        }
+    }
+    
+    public String getDefaultTenderJson() {
+    	return getDefaultObjectJson("src/test/resources/json/Tender.json");
+    }
+    
+    public String getDefaultProposalJson() {
+    	return getDefaultObjectJson("src/test/resources/json/Proposal.json");
+    }
+    
+    private String getDefaultObjectJson(String path) {
+        final Path tenderJsonPath = Paths.get(path);
+        try {
+            return Files.readString(tenderJsonPath, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            return "{}";
         }
     }
 }

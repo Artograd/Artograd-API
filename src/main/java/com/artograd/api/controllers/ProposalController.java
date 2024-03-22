@@ -43,7 +43,7 @@ public class ProposalController {
 
     	proposal.setOwnerId(claims.getUsername());
     	return proposalService.createProposal(tenderId, proposal)
-            .map(p -> new ResponseEntity<>(p, HttpStatus.OK))
+            .map(p -> new ResponseEntity<>(p, HttpStatus.CREATED))
             .orElse( new ResponseEntity("Proposal could not be created. Check that you are not tender owner.", HttpStatus.BAD_REQUEST));
     }
 
