@@ -1,6 +1,7 @@
 package com.artograd.api.controllers;
 
 import com.artograd.api.model.Tender;
+import com.artograd.api.model.TenderSearchCriteria;
 import com.artograd.api.services.CognitoService;
 import com.artograd.api.services.TenderService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -61,17 +62,9 @@ public class TenderController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Tender>> searchTenders(
-        @RequestParam(required = false) String title,
-        @RequestParam(required = false) List<String> locationLeafIds,
-        @RequestParam(required = false) List<String> statuses,
-        @RequestParam(required = false) String ownerId,
-        @RequestParam(defaultValue = "0") int page, 
-        @RequestParam(defaultValue = "10") int size,
-        @RequestParam(defaultValue = "createdAt") String sortBy, 
-        @RequestParam(defaultValue = "desc") String sortOrder) {
+    public ResponseEntity<List<Tender>> searchTenders(@ModelAttribute TenderSearchCriteria criteria) {
 
-        List<Tender> tenders = tenderService.searchTenders(title, locationLeafIds, statuses, ownerId, page, size, sortBy, sortOrder);
+        List<Tender> tenders = tenderService.searchTenders(criteria);
         return ResponseEntity.ok().body(tenders);
     }
 

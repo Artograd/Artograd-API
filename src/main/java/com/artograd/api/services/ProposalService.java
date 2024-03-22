@@ -4,11 +4,14 @@ import com.artograd.api.model.Proposal;
 import com.artograd.api.model.User;
 import com.artograd.api.model.UserAttribute;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
@@ -43,14 +46,19 @@ public class ProposalService {
      * @param proposal  The proposal object to add.
      * @return An Optional containing the created proposal or empty if the tender doesn't exist.
      */
-    public Optional<Proposal> createProposal(String tenderId, Proposal proposal) {
+    public Optional<Proposal> createProposal(String tenderId, Proposal proposal, String realUserName) {
         return tenderService.getTender(tenderId)
             .map(tender -> {
                 proposal.setId(generateProposalId());
                 proposal.setCreatedAt(new Date());
                 proposal.setModifiedAt(new Date());
-
+                proposal.setOwnerId( realUserName );
+                
                 enrichProposalWithOwnerData(proposal);
+                
+                if (tender.getProposals() == null ) {
+                	tender.setProposals(new ArrayList<>());
+                }
 
                 tender.getProposals().add(proposal);
                 tenderService.updateTender(tender);
@@ -94,6 +102,14 @@ public class ProposalService {
                     tenderService.updateTender(tender);
                     return proposal;
                 }));
+    }
+    
+    public boolean isProposalOperationAllowed(String tenderId, String proposalId, HttpServletRequest request) {
+        return getProposal(tenderId, proposalId)
+            .map(proposal -> cognitoService.getUserTokenClaims(request)
+                .map(claims -> claims.getUsername() != null && claims.getUsername().equals(proposal.getOwnerId()))
+                .orElse(false))
+            .orElse(false);
     }
 
     private void updateExistingProposal(Proposal existingProposal, Proposal updatedProposal) {

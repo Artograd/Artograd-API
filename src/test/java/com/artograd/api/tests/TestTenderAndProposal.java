@@ -63,9 +63,22 @@ public class TestTenderAndProposal {
                 .andExpect(jsonPath("$.ownerId", containsString("officer")))
                 .andDo(result -> tenderId = JsonPath.read(result.getResponse().getContentAsString(), "$.id"));
     }
+    
+    @Test
+    @Order(3) 
+    public void searchTenderByTitle_Success() throws Exception {
+        String searchTitle = "New Art Installation";
+        
+        mockMvc.perform(get("/tenders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .param("title", searchTitle))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(greaterThan(0))))
+                .andExpect(jsonPath("$[0].title", is(searchTitle)));
+    }
 
     @Test
-    @Order(3)
+    @Order(4)
     public void officerUpdatesTender_Success() throws Exception {
         String tenderJson = testService.getDefaultTenderJson();
         ObjectMapper mapper = new ObjectMapper();
@@ -84,7 +97,7 @@ public class TestTenderAndProposal {
     }
 
     @Test
-    @Order(4)
+    @Order(5)
     public void officerCreatesProposalForTender_Forbidden() throws Exception {
         mockMvc.perform(post("/tenders/" + tenderId + "/proposals")
                 .header("Authorization", "Bearer " + testService.getTestUsers().getOfficalToken())
@@ -95,7 +108,7 @@ public class TestTenderAndProposal {
     }
 
     @Test
-    @Order(5)
+    @Order(6)
     public void creatorCreatesProposalForTender_Success() throws Exception {
         mockMvc.perform(post("/tenders/" + tenderId + "/proposals")
                 .header("Authorization", "Bearer " + testService.getTestUsers().getCreatorToken())
@@ -107,7 +120,7 @@ public class TestTenderAndProposal {
     }
 
     @Test
-    @Order(6)
+    @Order(7)
     public void creatorUpdatesProposal_Success() throws Exception {
     	 String proposalJson = testService.getDefaultProposalJson();
          ObjectMapper mapper = new ObjectMapper();
@@ -126,7 +139,7 @@ public class TestTenderAndProposal {
     }
 
     @Test
-    @Order(7)
+    @Order(8)
     public void officialDeletesProposal_Forbidden() throws Exception {
         mockMvc.perform(delete("/tenders/" + tenderId + "/proposals/" + proposalId)
                 .header("Authorization", "Bearer " + testService.getTestUsers().getOfficalToken()))
@@ -134,7 +147,7 @@ public class TestTenderAndProposal {
     }
 
     @Test
-    @Order(8)
+    @Order(9)
     public void creatorDeletesProposal_Success() throws Exception {
         mockMvc.perform(delete("/tenders/" + tenderId + "/proposals/" + proposalId)
                 .header("Authorization", "Bearer " + testService.getTestUsers().getCreatorToken()))
@@ -142,7 +155,7 @@ public class TestTenderAndProposal {
     }
 
     @Test
-    @Order(9)
+    @Order(10)
     public void creatorDeletesProposalAgain_Forbidden() throws Exception {
         mockMvc.perform(delete("/tenders/" + tenderId + "/proposals/" + proposalId)
                 .header("Authorization", "Bearer " + testService.getTestUsers().getCreatorToken()))
@@ -150,7 +163,7 @@ public class TestTenderAndProposal {
     }
     
     @Test
-    @Order(10)
+    @Order(11)
     public void creatorDeletesTender_Forbidden() throws Exception {
         mockMvc.perform(delete("/tenders/" + tenderId)
                 .header("Authorization", "Bearer " + testService.getTestUsers().getCreatorToken()))
@@ -158,7 +171,7 @@ public class TestTenderAndProposal {
     }
 
     @Test
-    @Order(11)
+    @Order(12)
     public void officerDeletesTender_Success() throws Exception {
         mockMvc.perform(delete("/tenders/" + tenderId)
                 .header("Authorization", "Bearer " + testService.getTestUsers().getOfficalToken()))

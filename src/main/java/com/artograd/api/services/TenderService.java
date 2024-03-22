@@ -1,6 +1,7 @@
 package com.artograd.api.services;
 
 import com.artograd.api.model.Tender;
+import com.artograd.api.model.TenderSearchCriteria;
 import com.artograd.api.model.User;
 import com.artograd.api.model.UserAttribute;
 import com.artograd.api.repositories.TenderRepository;
@@ -79,23 +80,17 @@ public class TenderService {
     /**
      * Searches for tenders based on various criteria.
      *
-     * @param title            The title to search for.
-     * @param locationLeafIds  The location leaf IDs.
-     * @param statuses         The statuses.
-     * @param ownerId          The owner ID.
-     * @param page             The page number for pagination.
-     * @param size             The page size for pagination.
-     * @param sortBy           The field to sort by.
-     * @param sortOrder        The sort order, either 'asc' or 'desc'.
+     * @param sortOrder        The TenderSearchCriteria
      * @return A list of tenders that match the criteria.
      */
-    public List<Tender> searchTenders(String title, List<String> locationLeafIds, List<String> statuses,
-                                      String ownerId, int page, int size, String sortBy, String sortOrder) {
-        Query query = buildSearchQuery(title, locationLeafIds, statuses, ownerId, sortBy, sortOrder);
-        final Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortOrder), sortBy));
+    public List<Tender> searchTenders(TenderSearchCriteria criteria) {
+        Query query = buildSearchQuery(criteria);
+        final Pageable pageable = PageRequest.of(criteria.getPage(), criteria.getSize(),
+        		Sort.by(Sort.Direction.fromString(criteria.getSortOrder()), criteria.getSortBy()));
         query.with(pageable);
         return mongoTemplate.find(query, Tender.class);
     }
+
 
     /**
      * Counts tenders by owner ID and optional statuses.
@@ -125,38 +120,34 @@ public class TenderService {
                 .orElse(false);
     }
 
-    /**
-     * Builds a Query object for searching tenders based on criteria.
-     */
-    private Query buildSearchQuery(String title, List<String> locationLeafIds, List<String> statuses, String ownerId, String sortBy, String sortOrder) {
+    private Query buildSearchQuery(TenderSearchCriteria criteria) {
         Query query = new Query();
         List<Criteria> criteriaList = new ArrayList<>();
 
-        if (StringUtils.isNotBlank(title)) {
-            criteriaList.add(Criteria.where("title").regex(title, "i"));
+        if (StringUtils.isNotBlank(criteria.getTitle())) {
+            criteriaList.add(Criteria.where("title").regex(criteria.getTitle(), "i"));
         }
-        if (StringUtils.isNotBlank(ownerId)) {
-            criteriaList.add(Criteria.where("ownerId").is(ownerId));
+        if (StringUtils.isNotBlank(criteria.getOwnerId())) {
+            criteriaList.add(Criteria.where("ownerId").is(criteria.getOwnerId()));
         }
-        if (!CollectionUtils.isEmpty(locationLeafIds)) {
-            criteriaList.add(Criteria.where("locationLeafId").in(locationLeafIds));
+        if (!CollectionUtils.isEmpty(criteria.getLocationLeafIds())) {
+            criteriaList.add(Criteria.where("locationLeafId").in(criteria.getLocationLeafIds()));
         }
-        if (!CollectionUtils.isEmpty(statuses)) {
-            criteriaList.add(Criteria.where("status").in(statuses));
+        if (!CollectionUtils.isEmpty(criteria.getStatuses())) {
+            criteriaList.add(Criteria.where("status").in(criteria.getStatuses()));
         }
 
         if (!criteriaList.isEmpty()) {
-            Criteria criteria = new Criteria().andOperator(criteriaList.toArray(new Criteria[0]));
-            query.addCriteria(criteria);
+            Criteria combinedCriteria = new Criteria().andOperator(criteriaList.toArray(new Criteria[0]));
+            query.addCriteria(combinedCriteria);
         }
 
-        Sort.Direction direction = Sort.Direction.fromString(sortOrder);
-        Sort sort = Sort.by(direction, sortBy);
+        Sort.Direction direction = Sort.Direction.fromString(criteria.getSortOrder());
+        Sort sort = Sort.by(direction, criteria.getSortBy());
         query.with(sort);
 
         return query;
     }
-
 
     /**
      * Enriches a tender with owner data and updates timestamps.

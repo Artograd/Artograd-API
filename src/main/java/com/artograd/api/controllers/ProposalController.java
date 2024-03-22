@@ -41,8 +41,7 @@ public class ProposalController {
     		return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Operation not allowed.");
     	}
 
-    	proposal.setOwnerId(claims.getUsername());
-    	return proposalService.createProposal(tenderId, proposal)
+    	return proposalService.createProposal(tenderId, proposal, claims.getUsername())
             .map(p -> new ResponseEntity<>(p, HttpStatus.CREATED))
             .orElse( new ResponseEntity("Proposal could not be created. Check that you are not tender owner.", HttpStatus.BAD_REQUEST));
     }
@@ -50,7 +49,7 @@ public class ProposalController {
     @PutMapping("/{proposalId}")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<?> updateProposal(@PathVariable String tenderId, @PathVariable String proposalId, @RequestBody Proposal proposal, HttpServletRequest request) {
-        return isProposalOperationAllowed(tenderId, proposalId, request)
+        return proposalService.isProposalOperationAllowed(tenderId, proposalId, request)
             ? proposalService.updateProposal(tenderId, proposalId, proposal)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build())
@@ -60,19 +59,11 @@ public class ProposalController {
     @DeleteMapping("/{proposalId}")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Void> deleteProposal(@PathVariable String tenderId, @PathVariable String proposalId, HttpServletRequest request) {
-        return isProposalOperationAllowed(tenderId, proposalId, request)
+        return proposalService.isProposalOperationAllowed(tenderId, proposalId, request)
             ? proposalService.deleteProposal(tenderId, proposalId)
                 ? ResponseEntity.noContent().<Void>build()
                 : ResponseEntity.notFound().build()
             : ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-    }
-
-    private boolean isProposalOperationAllowed(String tenderId, String proposalId, HttpServletRequest request) {
-        return proposalService.getProposal(tenderId, proposalId)
-            .map(proposal -> cognitoService.getUserTokenClaims(request)
-                .map(claims -> claims.getUsername() != null && claims.getUsername().equals(proposal.getOwnerId()))
-                .orElse(false))
-            .orElse(false);
     }
 }
 

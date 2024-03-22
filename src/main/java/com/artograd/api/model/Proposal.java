@@ -1,6 +1,7 @@
 package com.artograd.api.model;
 
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.data.annotation.Id;
 
@@ -26,7 +27,7 @@ public class Proposal {
 	private String description;
 	
 	@Schema(description = "The list of attached images")
-	private FileInfo images;
+	private List<FileInfo> images;
 	
 	@Schema(description = "The cover image")
 	private FileInfo cover;

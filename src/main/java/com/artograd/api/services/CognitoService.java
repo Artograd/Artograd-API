@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
@@ -25,6 +27,8 @@ import java.util.Optional;
 
 @Service
 public class CognitoService {
+	
+	private static final Logger logger = LoggerFactory.getLogger(CognitoService.class);
 
     @Value("${aws.cognito.userPoolId}")
     private String userPoolId;
@@ -39,7 +43,7 @@ public class CognitoService {
             cognitoClient.adminDeleteUser(deleteRequest);
             return true;
         } catch (Exception e) {
-            System.err.println("Error deleting user by sub: " + e.getMessage());
+            logger.error("Error deleting user by username: ", e.getMessage(), e);
             return false;
         }
     }
@@ -63,7 +67,7 @@ public class CognitoService {
             cognitoClient.adminUpdateUserAttributes(updateRequest);
             return true;
         } catch (Exception e) {
-            System.err.println("Error updating user attributes by username: " + e.getMessage());
+            logger.error("Error updating user attributes by username: ", e.getMessage(), e);
             return false;
         }
     }
@@ -82,7 +86,7 @@ public class CognitoService {
             }
             return Optional.ofNullable(new User(userAttrsResult));
         } catch (Exception e) {
-            System.err.println("Error fetching user by username: " + e.getMessage());
+            logger.error("Error fetching user by username: ", e.getMessage(), e);
             return Optional.ofNullable(null);
         }
     }
@@ -103,7 +107,7 @@ public class CognitoService {
                 return Optional.of(extractClaims(jwt));
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error fetching user token claims ", e.getMessage(), e);
         }
         return Optional.empty();
     }
@@ -146,19 +150,19 @@ public class CognitoService {
             try {
                 return (RSAPublicKey) jwkProvider.get(kid).getPublicKey();
             } catch (Exception e) {
-                e.printStackTrace(); // Consider proper logging
+            	logger.error("Error fetching public key:", e.getMessage(), e);
                 return null;
             }
         }
 
         @Override
         public RSAPrivateKey getPrivateKey() {
-            return null; // Not needed for token verification
+            return null;
         }
 
         @Override
         public String getPrivateKeyId() {
-            return null; // Not needed for token verification
+            return null;
         }
     }
 }
