@@ -25,6 +25,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -47,9 +48,9 @@ public class S3FileUploadController {
     @PostMapping("/uploadFile/{tenderFolder}/{subFolder}")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<?> uploadFile(
-            @PathVariable String tenderFolder,
-            @PathVariable String subFolder,
-            @RequestParam("file") MultipartFile file, HttpServletRequest request) {
+        @PathVariable String tenderFolder,
+        @PathVariable String subFolder,
+        @RequestParam("file") MultipartFile file, HttpServletRequest request) {
 
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body("File is empty");
@@ -84,15 +85,19 @@ public class S3FileUploadController {
     }
 
     private String createAndUploadImageSnap(MultipartFile file, String tenderFolder, String subFolder, String fileName, String extension) throws IOException {
-        BufferedImage thumbnail = Thumbnails.of(file.getInputStream()).size(286, 336).asBufferedImage();
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ImageIO.write(thumbnail, extension, baos);
-        byte[] snapBytes = baos.toByteArray();
+        // In this try-with-resources the InputStream and ByteArrayOutputStream will be automatically closed
+        try (InputStream fileInputStream = file.getInputStream();
+             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 
-        String snapFileName = String.format("%s/%s/snaps/%s.%s", tenderFolder, subFolder, fileName, extension);
-        uploadToS3(snapBytes, snapFileName);
+            BufferedImage thumbnail = Thumbnails.of(fileInputStream).size(286, 336).asBufferedImage();
+            ImageIO.write(thumbnail, extension, baos);
+            byte[] snapBytes = baos.toByteArray();
 
-        return cloudFrontDomainName + "/" + snapFileName;
+            String snapFileName = String.format("%s/%s/snaps/%s.%s", tenderFolder, subFolder, fileName, extension);
+            uploadToS3(snapBytes, snapFileName);
+
+            return cloudFrontDomainName + "/" + snapFileName;
+        }
     }
     
     private void uploadToS3(byte[] content, String key) {

@@ -1,0 +1,8 @@
+aws:
+  cognito:
+    clientId: ${AWS_COGNITO_CLIENT_ID}
+
+artograd:
+  user-official: ${ARTOGRAD_USER_OFFICIAL}
+  user-creator: ${ARTOGRAD_USER_CREATOR}
+  user-citizen: ${ARTOGRAD_USER_CITIZEN}
