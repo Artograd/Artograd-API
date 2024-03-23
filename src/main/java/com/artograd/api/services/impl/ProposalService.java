@@ -3,7 +3,9 @@ package com.artograd.api.services.impl;
 import com.artograd.api.model.Proposal;
 import com.artograd.api.model.User;
 import com.artograd.api.model.UserAttribute;
+import com.artograd.api.services.IUserService;
 import com.artograd.api.services.IProposalService;
+import com.artograd.api.services.ITenderService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -21,10 +23,10 @@ import java.util.UUID;
 public class ProposalService implements IProposalService {
 
 	@Autowired
-    private TenderService tenderService;
+    private ITenderService tenderService;
 
     @Autowired
-    private CognitoService cognitoService;
+    private IUserService cognitoService;
     
     /**
      * Retrieves a proposal by its ID within a specific tender.

@@ -1,7 +1,7 @@
 package com.artograd.api.controllers;
 
 import com.artograd.api.model.UserAttribute;
-import com.artograd.api.services.ICognitoService;
+import com.artograd.api.services.IUserService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,11 +18,11 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     @Autowired
-    private ICognitoService cognitoService;
+    private IUserService userService;
 
     @GetMapping("/{username}")
     public ResponseEntity<?> getUserAttributesByUsername(@PathVariable String username) {
-        return cognitoService.getUserByUsername(username)
+        return userService.getUserByUsername(username)
                 .map(user -> ResponseEntity.ok().body(user))
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -34,7 +34,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Unauthorized access.");
         }
 
-        return cognitoService.deleteUserByUsername(username) ?
+        return userService.deleteUserByUsername(username) ?
                 ResponseEntity.noContent().build() :
                 ResponseEntity.internalServerError().body("Error deleting user.");
     }
@@ -46,7 +46,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Unauthorized access.");
         }
 
-        return cognitoService.updateUserAttributes(username, attributes) ?
+        return userService.updateUserAttributes(username, attributes) ?
                 ResponseEntity.ok().build() :
                 ResponseEntity.internalServerError().body("Error updating user attributes.");
     }
@@ -59,7 +59,7 @@ public class UserController {
      * @return true if access is denied, false otherwise
      */
     private boolean isDenied(String username, HttpServletRequest request) {
-        return cognitoService.getUserTokenClaims(request)
+        return userService.getUserTokenClaims(request)
                 .map(claims -> !username.equals(claims.getUsername()))
                 .orElse(true); // Deny access if token is not present or username does not match
     }

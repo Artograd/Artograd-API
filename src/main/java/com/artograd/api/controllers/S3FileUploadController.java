@@ -2,7 +2,7 @@ package com.artograd.api.controllers;
 
 import com.artograd.api.model.FileInfo;
 import com.artograd.api.model.system.UserTokenClaims;
-import com.artograd.api.services.ICognitoService;
+import com.artograd.api.services.IUserService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
@@ -40,7 +40,7 @@ public class S3FileUploadController {
     private String cloudFrontDomainName;
 
     @Autowired
-    private ICognitoService cognitoService;
+    private IUserService userService;
 
     private final S3Client s3Client = S3Client.builder()
             .credentialsProvider(DefaultCredentialsProvider.create())
@@ -57,7 +57,7 @@ public class S3FileUploadController {
             return ResponseEntity.badRequest().body("File is empty");
         }
 
-        Optional<UserTokenClaims> claims = cognitoService.getUserTokenClaims(request);
+        Optional<UserTokenClaims> claims = userService.getUserTokenClaims(request);
         if (!claims.isPresent() || claims.get().getUsername() == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Unauthorized access");
         }

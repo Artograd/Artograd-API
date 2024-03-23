@@ -2,7 +2,7 @@ package com.artograd.api.controllers;
 
 import com.artograd.api.model.Proposal;
 import com.artograd.api.model.system.UserTokenClaims;
-import com.artograd.api.services.ICognitoService;
+import com.artograd.api.services.IUserService;
 import com.artograd.api.services.IProposalService;
 import com.artograd.api.services.ITenderService;
 
@@ -24,7 +24,7 @@ public class ProposalController {
     private ITenderService tenderService;
 
     @Autowired
-    private ICognitoService cognitoService;
+    private IUserService userService;
     
     @GetMapping("/{proposalId}")
     public ResponseEntity<Proposal> getProposal(@PathVariable String tenderId, @PathVariable String proposalId) {
@@ -37,7 +37,7 @@ public class ProposalController {
 	@PostMapping
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<?> createProposal(@PathVariable String tenderId, @RequestBody Proposal proposal, HttpServletRequest request) {
-    	UserTokenClaims claims = cognitoService.getUserTokenClaims(request).orElse(null);
+    	UserTokenClaims claims = userService.getUserTokenClaims(request).orElse(null);
     	if (claims == null || tenderService.isTenderOwner(tenderId, claims.getUsername())) {
     		return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Operation not allowed.");
     	}

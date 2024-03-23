@@ -5,6 +5,7 @@ import com.artograd.api.model.TenderSearchCriteria;
 import com.artograd.api.model.User;
 import com.artograd.api.model.UserAttribute;
 import com.artograd.api.repositories.TenderRepository;
+import com.artograd.api.services.IUserService;
 import com.artograd.api.services.ITenderService;
 
 import org.apache.commons.lang3.StringUtils;
@@ -30,7 +31,7 @@ public class TenderService implements ITenderService {
     private TenderRepository tenderRepository;
 
     @Autowired
-    private CognitoService cognitoService;
+    private IUserService cognitoService;
 
     @Autowired
     private MongoTemplate mongoTemplate;

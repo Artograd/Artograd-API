@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Optional;
 
-public interface ICognitoService {
+public interface IUserService {
     boolean deleteUserByUsername(String userName);
     boolean updateUserAttributes(String userName, List<UserAttribute> attributes);
     Optional<User> getUserByUsername(String username);

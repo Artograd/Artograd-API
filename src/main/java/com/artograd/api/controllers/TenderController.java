@@ -2,7 +2,7 @@ package com.artograd.api.controllers;
 
 import com.artograd.api.model.Tender;
 import com.artograd.api.model.TenderSearchCriteria;
-import com.artograd.api.services.ICognitoService;
+import com.artograd.api.services.IUserService;
 import com.artograd.api.services.ITenderService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -22,12 +22,12 @@ public class TenderController {
     private ITenderService tenderService;
 	
     @Autowired
-    private ICognitoService cognitoService;
+    private IUserService userService;
 
     @PostMapping
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Tender> createTender(@RequestBody Tender tender, HttpServletRequest request) {
-        return cognitoService.getUserTokenClaims(request)
+        return userService.getUserTokenClaims(request)
             .filter(claims -> claims.getUsername() != null)
             .filter(claims -> claims.getUsername().equals(tender.getOwnerId()) && claims.isOfficer())
             .map(claims -> tenderService.createTender(tender))
@@ -77,7 +77,7 @@ public class TenderController {
     }
 
     private boolean isDenied(String tenderId, HttpServletRequest request) {
-        return cognitoService.getUserTokenClaims(request)
+        return userService.getUserTokenClaims(request)
             .map(claims -> !claims.isOfficer() || !tenderService.isTenderOwner(tenderId, claims.getUsername()))
             .orElse(true);
     }

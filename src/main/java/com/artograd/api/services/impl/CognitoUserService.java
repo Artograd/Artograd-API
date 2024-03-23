@@ -3,7 +3,7 @@ package com.artograd.api.services.impl;
 import com.artograd.api.model.User;
 import com.artograd.api.model.UserAttribute;
 import com.artograd.api.model.system.UserTokenClaims;
-import com.artograd.api.services.ICognitoService;
+import com.artograd.api.services.IUserService;
 import com.artograd.api.utils.CommonUtils;
 import com.auth0.jwk.JwkProvider;
 import com.auth0.jwk.JwkProviderBuilder;
@@ -27,9 +27,9 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class CognitoService implements ICognitoService {
+public class CognitoUserService implements IUserService {
 	
-	private static final Logger logger = LoggerFactory.getLogger(CognitoService.class);
+	private static final Logger logger = LoggerFactory.getLogger(CognitoUserService.class);
 
     @Value("${aws.cognito.userPoolId}")
     private String userPoolId;
