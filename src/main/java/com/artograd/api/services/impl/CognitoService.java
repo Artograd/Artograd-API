@@ -1,8 +1,9 @@
-package com.artograd.api.services;
+package com.artograd.api.services.impl;
 
 import com.artograd.api.model.User;
 import com.artograd.api.model.UserAttribute;
 import com.artograd.api.model.system.UserTokenClaims;
+import com.artograd.api.services.ICognitoService;
 import com.artograd.api.utils.CommonUtils;
 import com.auth0.jwk.JwkProvider;
 import com.auth0.jwk.JwkProviderBuilder;
@@ -26,13 +27,14 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class CognitoService {
+public class CognitoService implements ICognitoService {
 	
 	private static final Logger logger = LoggerFactory.getLogger(CognitoService.class);
 
     @Value("${aws.cognito.userPoolId}")
     private String userPoolId;
 
+    @Override
     public boolean deleteUserByUsername(String userName) {
         try (CognitoIdentityProviderClient cognitoClient = CognitoIdentityProviderClient.builder().build()) {
             AdminDeleteUserRequest deleteRequest = AdminDeleteUserRequest.builder()
@@ -48,6 +50,7 @@ public class CognitoService {
         }
     }
 
+    @Override
     public boolean updateUserAttributes(String userName, List<UserAttribute> attributes) {
         try (CognitoIdentityProviderClient cognitoClient = CognitoIdentityProviderClient.builder().build()) {
             List<AttributeType> attributeTypes = new ArrayList<>();
@@ -72,6 +75,7 @@ public class CognitoService {
         }
     }
 
+    @Override
     public Optional<User> getUserByUsername(String username) {
         try (CognitoIdentityProviderClient cognitoClient = CognitoIdentityProviderClient.builder().build()) {
             AdminGetUserRequest getUserRequest = AdminGetUserRequest.builder()
@@ -91,6 +95,7 @@ public class CognitoService {
         }
     }
     
+    @Override
     public Optional<UserTokenClaims> getUserTokenClaims(HttpServletRequest request) {
         try {
             String cognitoIssuer = getCognitoIssuer(userPoolId);

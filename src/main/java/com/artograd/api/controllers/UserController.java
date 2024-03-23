@@ -1,7 +1,8 @@
 package com.artograd.api.controllers;
 
 import com.artograd.api.model.UserAttribute;
-import com.artograd.api.services.CognitoService;
+import com.artograd.api.services.ICognitoService;
+
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -17,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     @Autowired
-    private CognitoService cognitoService;
+    private ICognitoService cognitoService;
 
     @GetMapping("/{username}")
     public ResponseEntity<?> getUserAttributesByUsername(@PathVariable String username) {

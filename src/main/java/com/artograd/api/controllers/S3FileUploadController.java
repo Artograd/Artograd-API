@@ -2,7 +2,8 @@ package com.artograd.api.controllers;
 
 import com.artograd.api.model.FileInfo;
 import com.artograd.api.model.system.UserTokenClaims;
-import com.artograd.api.services.CognitoService;
+import com.artograd.api.services.ICognitoService;
+
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 import net.coobird.thumbnailator.Thumbnails;
@@ -39,7 +40,7 @@ public class S3FileUploadController {
     private String cloudFrontDomainName;
 
     @Autowired
-    private CognitoService cognitoService;
+    private ICognitoService cognitoService;
 
     private final S3Client s3Client = S3Client.builder()
             .credentialsProvider(DefaultCredentialsProvider.create())

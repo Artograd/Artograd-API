@@ -1,10 +1,12 @@
-package com.artograd.api.services;
+package com.artograd.api.services.impl;
 
 import com.artograd.api.model.Tender;
 import com.artograd.api.model.TenderSearchCriteria;
 import com.artograd.api.model.User;
 import com.artograd.api.model.UserAttribute;
 import com.artograd.api.repositories.TenderRepository;
+import com.artograd.api.services.ITenderService;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -22,7 +24,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class TenderService {
+public class TenderService implements ITenderService {
 
  	@Autowired
     private TenderRepository tenderRepository;
@@ -39,6 +41,7 @@ public class TenderService {
      * @param tender The tender to create.
      * @return The created tender.
      */
+    @Override
     public Tender createTender(Tender tender) {
         enrichTenderWithOwnerDataAndTimestamps(tender);
         tender.setCreatedAt( new Date() );
@@ -51,6 +54,7 @@ public class TenderService {
      * @param id The ID of the tender.
      * @return An Optional containing the found tender or empty if not found.
      */
+    @Override
     public Optional<Tender> getTender(String id) {
         return tenderRepository.findById(id);
     }
@@ -61,6 +65,7 @@ public class TenderService {
      * @param tender     The tender to update.
      * @return Optional containing the updated tender if update is successful; otherwise, an empty Optional.
      */
+    @Override
     public Optional<Tender> updateTender(Tender tender) {
     	tender.setCreatedAt( getTender(tender.getId()).get().getCreatedAt() );
         enrichTenderWithOwnerDataAndTimestamps(tender);
@@ -73,6 +78,7 @@ public class TenderService {
      *
      * @param id The ID of the tender to delete.
      */
+    @Override
     public void deleteTender(String id) {
         tenderRepository.deleteById(id);
     }
@@ -83,6 +89,7 @@ public class TenderService {
      * @param sortOrder        The TenderSearchCriteria
      * @return A list of tenders that match the criteria.
      */
+    @Override
     public List<Tender> searchTenders(TenderSearchCriteria criteria) {
         Query query = buildSearchQuery(criteria);
         final Pageable pageable = PageRequest.of(criteria.getPage(), criteria.getSize(),
@@ -99,6 +106,7 @@ public class TenderService {
      * @param statuses Optional list of statuses.
      * @return The count of matching tenders.
      */
+    @Override
     public long getCountByOwnerIdAndStatusIn(String ownerId, List<String> statuses) {
         Query query = new Query().addCriteria(Criteria.where("ownerId").is(ownerId));
         if (statuses != null && !statuses.isEmpty()) {
@@ -114,6 +122,7 @@ public class TenderService {
      * @param username The username to check.
      * @return True if the username is the owner of the tender.
      */
+    @Override
     public boolean isTenderOwner(String tenderId, String username) {
         return getTender(tenderId)
                 .map(tender -> tender.getOwnerId().equals(username))

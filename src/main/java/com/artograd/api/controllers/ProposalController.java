@@ -2,9 +2,10 @@ package com.artograd.api.controllers;
 
 import com.artograd.api.model.Proposal;
 import com.artograd.api.model.system.UserTokenClaims;
-import com.artograd.api.services.CognitoService;
-import com.artograd.api.services.ProposalService;
-import com.artograd.api.services.TenderService;
+import com.artograd.api.services.ICognitoService;
+import com.artograd.api.services.IProposalService;
+import com.artograd.api.services.ITenderService;
+
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,13 +18,13 @@ import org.springframework.web.bind.annotation.*;
 public class ProposalController {
 	
     @Autowired
-    private ProposalService proposalService;
+    private IProposalService proposalService;
     
     @Autowired
-    private TenderService tenderService;
+    private ITenderService tenderService;
 
     @Autowired
-    private CognitoService cognitoService;
+    private ICognitoService cognitoService;
     
     @GetMapping("/{proposalId}")
     public ResponseEntity<Proposal> getProposal(@PathVariable String tenderId, @PathVariable String proposalId) {

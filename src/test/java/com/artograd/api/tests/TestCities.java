@@ -11,7 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.artograd.api.taf.TestService;
+import com.artograd.api.taf.ITestService;
 
 import static org.hamcrest.Matchers.*;
 
@@ -29,7 +29,7 @@ public class TestCities {
     private MockMvc mockMvc;
     
     @Autowired
-    private TestService testService;
+    private ITestService testService;
 
     /**
      * Test that cities are returned with authorization token

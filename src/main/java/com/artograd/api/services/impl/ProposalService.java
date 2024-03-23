@@ -1,8 +1,9 @@
-package com.artograd.api.services;
+package com.artograd.api.services.impl;
 
 import com.artograd.api.model.Proposal;
 import com.artograd.api.model.User;
 import com.artograd.api.model.UserAttribute;
+import com.artograd.api.services.IProposalService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -17,7 +18,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-public class ProposalService {
+public class ProposalService implements IProposalService {
 
 	@Autowired
     private TenderService tenderService;
@@ -32,6 +33,7 @@ public class ProposalService {
      * @param proposalId  The ID of the proposal to find.
      * @return An Optional containing the found proposal or empty if not found.
      */
+    @Override
     public Optional<Proposal> getProposal(String tenderId, String proposalId) {
         return tenderService.getTender(tenderId)
             .flatMap(tender -> tender.getProposals().stream()
@@ -46,6 +48,7 @@ public class ProposalService {
      * @param proposal  The proposal object to add.
      * @return An Optional containing the created proposal or empty if the tender doesn't exist.
      */
+    @Override
     public Optional<Proposal> createProposal(String tenderId, Proposal proposal, String realUserName) {
         return tenderService.getTender(tenderId)
             .map(tender -> {
@@ -73,6 +76,7 @@ public class ProposalService {
      * @param proposalId  The ID of the proposal to delete.
      * @return true if the proposal was successfully deleted, false otherwise.
      */
+    @Override
     public boolean deleteProposal(String tenderId, String proposalId) {
         return tenderService.getTender(tenderId)
             .map(tender -> {
@@ -92,6 +96,7 @@ public class ProposalService {
      * @param updatedProposal  The new proposal data to apply.
      * @return An Optional containing the updated proposal or empty if not found.
      */
+    @Override
     public Optional<Proposal> updateProposal(String tenderId, String proposalId, Proposal updatedProposal) {
         return tenderService.getTender(tenderId)
             .flatMap(tender -> tender.getProposals().stream()
@@ -104,6 +109,7 @@ public class ProposalService {
                 }));
     }
     
+    @Override
     public boolean isProposalOperationAllowed(String tenderId, String proposalId, HttpServletRequest request) {
         return getProposal(tenderId, proposalId)
             .map(proposal -> cognitoService.getUserTokenClaims(request)

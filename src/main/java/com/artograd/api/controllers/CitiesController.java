@@ -1,7 +1,7 @@
 package com.artograd.api.controllers;
 
 import com.artograd.api.model.City;
-import com.artograd.api.services.CitiesService;
+import com.artograd.api.services.ICitiesService;
 import com.artograd.api.utils.CommonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +16,7 @@ import java.util.List;
 public class CitiesController {
 	
 	@Autowired
-    private CitiesService citiesService;
+    private ICitiesService citiesService;
 
 	@SuppressWarnings("unchecked")
 	@GetMapping

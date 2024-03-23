@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 import jakarta.annotation.PostConstruct;
 
 @Service
-public class TestService {
+public class TestService implements ITestService {
 
     @Value("${aws.cognito.clientId}")
     private String clientId;

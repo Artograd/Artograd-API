@@ -2,8 +2,9 @@ package com.artograd.api.controllers;
 
 import com.artograd.api.model.Tender;
 import com.artograd.api.model.TenderSearchCriteria;
-import com.artograd.api.services.CognitoService;
-import com.artograd.api.services.TenderService;
+import com.artograd.api.services.ICognitoService;
+import com.artograd.api.services.ITenderService;
+
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +19,10 @@ import java.util.List;
 public class TenderController {
 
     @Autowired
-    private TenderService tenderService;
+    private ITenderService tenderService;
 	
     @Autowired
-    private CognitoService cognitoService;
+    private ICognitoService cognitoService;
 
     @PostMapping
     @SecurityRequirement(name = "bearerAuth")

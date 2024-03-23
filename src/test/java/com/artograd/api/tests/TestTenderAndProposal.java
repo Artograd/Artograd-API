@@ -1,6 +1,6 @@
 package com.artograd.api.tests;
 
-import com.artograd.api.taf.TestService;
+import com.artograd.api.taf.ITestService;
 import com.jayway.jsonpath.JsonPath;
 
 import org.junit.jupiter.api.MethodOrderer;
@@ -35,7 +35,7 @@ public class TestTenderAndProposal {
     private MockMvc mockMvc;
 
     @Autowired
-    private TestService testService;
+    private ITestService testService;
 
     private static String tenderId;
     private static String proposalId;
