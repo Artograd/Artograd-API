@@ -1,12 +1,13 @@
 package com.artograd.api.controllers;
 
+import com.artograd.api.model.FileInfo;
 import com.artograd.api.model.system.UserTokenClaims;
-import com.artograd.api.services.CognitoService;
+import com.artograd.api.services.IUserService;
+
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -25,89 +26,86 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
 public class S3FileUploadController {
-	
-	@Value("${aws.s3.bucket-name}")
+
+    @Value("${aws.s3.bucket-name}")
     private String bucketName;
-	
-	@Value("${aws.cloudfront.distribution-domain}")
+
+    @Value("${aws.cloudfront.distribution-domain}")
     private String cloudFrontDomainName;
-	
-	@Autowired
-    private CognitoService cognitoService;
-	
-	private final S3Client s3Client = S3Client.builder()
+
+    @Autowired
+    private IUserService userService;
+
+    private final S3Client s3Client = S3Client.builder()
             .credentialsProvider(DefaultCredentialsProvider.create())
             .build();
-	
+
     @PostMapping("/uploadFile/{tenderFolder}/{subFolder}")
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<FileInfo> uploadFile(
-    		@PathVariable String tenderFolder, 
-    		@PathVariable String subFolder, 
-    		@RequestParam("file") MultipartFile file, HttpServletRequest request) {
-        if (file.isEmpty()) {
-        	return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        
-        UserTokenClaims claims = cognitoService.getUserTokenClaims(request);
-    	if ( StringUtils.isBlank( claims.getUsername() )) {//operation is allowed only to authorized users
-    		return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-    	}
+    public ResponseEntity<?> uploadFile(
+        @PathVariable String tenderFolder,
+        @PathVariable String subFolder,
+        @RequestParam("file") MultipartFile file, HttpServletRequest request) {
 
-        String originalFilename = file.getOriginalFilename();
-        String extension = FilenameUtils.getExtension(originalFilename).toLowerCase();
-        String fileName = UUID.randomUUID().toString();
-        String uniqueFileName = tenderFolder + "/" + subFolder + "/" + fileName + "." + extension;
-        String fileType = determineFileType(extension);
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("File is empty");
+        }
+
+        Optional<UserTokenClaims> claims = userService.getUserTokenClaims(request);
+        if (!claims.isPresent() || claims.get().getUsername() == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Unauthorized access");
+        }
 
         try {
-            s3Client.putObject(PutObjectRequest.builder()
-                    .bucket(bucketName)
-                    .key(uniqueFileName)
-                    .build(),
-                    RequestBody.fromBytes(file.getBytes()));
-        } catch (Exception e) {
-        	return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            FileInfo fileInfo = processFileUpload(file, tenderFolder, subFolder);
+            return ResponseEntity.ok(fileInfo);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to process the file");
         }
+    }
 
-        // Construct the CloudFront URL for the file
+    private FileInfo processFileUpload(MultipartFile file, String tenderFolder, String subFolder) throws IOException {
+        String originalFilename = file.getOriginalFilename();
+        String extension = FilenameUtils.getExtension(originalFilename).toLowerCase();
+        String fileName = UUID.randomUUID().toString().replace("-","");
+        String uniqueFileName = String.format("%s/%s/%s.%s", tenderFolder, subFolder, fileName, extension);
+        String fileType = determineFileType(extension);
+
+        uploadToS3(file.getBytes(), uniqueFileName);
+
         String fileUrl = cloudFrontDomainName + "/" + uniqueFileName;
-        
-        String snapPath = null;
-        if (determineFileType(extension).equals("image")) {
-            // Define the path for the resized image (snap)
-        	String snapFileName  = tenderFolder + "/" + subFolder  + "/snaps/" + fileName + "." + extension;
-			try {
-				BufferedImage thumbnail = Thumbnails.of(file.getInputStream())
-				         .size(286, 336) 
-				         .asBufferedImage();
-			
-				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				ImageIO.write(thumbnail, extension, baos);
-			
-	            byte[] snapBytes = baos.toByteArray();
-	
-	            s3Client.putObject(PutObjectRequest.builder()
-	                    .bucket(bucketName)
-	                    .key(snapFileName)
-	                    .build(),
-	                    RequestBody.fromBytes(snapBytes));
-	
-	            snapPath = cloudFrontDomainName + "/" + snapFileName;
-            
-			} catch (IOException e) {
-				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-			}
-        } else {
-        	snapPath = fileUrl;
-        }
+        String snapPath = fileType.equals("image") ? createAndUploadImageSnap(file, tenderFolder, subFolder, fileName, extension) : fileUrl;
 
-        FileInfo fileInfo = new FileInfo(fileUrl, snapPath, originalFilename, file.getSize(), 0, fileType, extension);
-        return new ResponseEntity<>(fileInfo, HttpStatus.CREATED);
+        return new FileInfo(fileUrl, snapPath, originalFilename, file.getSize(), 0, fileType, extension);
+    }
+
+    private String createAndUploadImageSnap(MultipartFile file, String tenderFolder, String subFolder, String fileName, String extension) throws IOException {
+        // In this try-with-resources the InputStream and ByteArrayOutputStream will be automatically closed
+        try (InputStream fileInputStream = file.getInputStream();
+             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+
+            BufferedImage thumbnail = Thumbnails.of(fileInputStream).size(286, 336).asBufferedImage();
+            ImageIO.write(thumbnail, extension, baos);
+            byte[] snapBytes = baos.toByteArray();
+
+            String snapFileName = String.format("%s/%s/snaps/%s.%s", tenderFolder, subFolder, fileName, extension);
+            uploadToS3(snapBytes, snapFileName);
+
+            return cloudFrontDomainName + "/" + snapFileName;
+        }
+    }
+    
+    private void uploadToS3(byte[] content, String key) {
+        s3Client.putObject(PutObjectRequest.builder()
+            .bucket(bucketName)
+            .key(key)
+            .build(), RequestBody.fromBytes(content));
     }
 
     private String determineFileType(String extension) {
@@ -118,25 +116,5 @@ public class S3FileUploadController {
         }
         return "attachment";
     }
-
-    // Inner class to encapsulate file info response
-    static class FileInfo {
-        public String path;
-        public String snapPath;
-        public String name;
-        public long size;
-        public int id;
-        public String type;
-        public String extension;
-
-        public FileInfo(String path, String snapPath, String name, long size, int id, String type, String extension) {
-            this.path = path;
-            this.snapPath = snapPath;
-            this.name = name;
-            this.size = size;
-            this.id = id;
-            this.type = type;
-            this.extension = extension;
-        }
-    }
 }
+
