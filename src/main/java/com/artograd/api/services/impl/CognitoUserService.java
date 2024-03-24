@@ -2,6 +2,8 @@ package com.artograd.api.services.impl;
 
 import com.artograd.api.model.User;
 import com.artograd.api.model.UserAttribute;
+import com.artograd.api.model.enums.UserAttributeKey;
+import com.artograd.api.model.enums.UserRole;
 import com.artograd.api.model.system.UserTokenClaims;
 import com.artograd.api.services.IUserService;
 import com.artograd.api.utils.CommonUtils;
@@ -23,8 +25,11 @@ import org.slf4j.LoggerFactory;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class CognitoUserService implements IUserService {
@@ -88,6 +93,18 @@ public class CognitoUserService implements IUserService {
             for (AttributeType attr : getUserResponse.userAttributes()) {
                 userAttrsResult.add(new UserAttribute(attr.name(), attr.value()));
             }
+            
+            AdminListGroupsForUserRequest requestGetGroups = AdminListGroupsForUserRequest.builder()
+                .username(username)
+                .userPoolId(userPoolId)
+                .build();
+            
+            AdminListGroupsForUserResponse responseGroups = cognitoClient.adminListGroupsForUser(requestGetGroups);
+            
+            if (responseGroups.groups().size() > 0)  {
+            	userAttrsResult.add(new UserAttribute("cognito:groups", responseGroups.groups().get(0).groupName()));
+            }
+            
             return Optional.ofNullable(new User(userAttrsResult));
         } catch (Exception e) {
             logger.error("Error fetching user by username: ", e.getMessage(), e);
@@ -115,6 +132,59 @@ public class CognitoUserService implements IUserService {
             logger.error("Error fetching user token claims ", e.getMessage(), e);
         }
         return Optional.empty();
+    }
+    
+    @Override
+    public UserRole determineRequesterRole(UserTokenClaims claims) {
+    	if ( claims == null ) {
+    		return UserRole.ANONYMOUS_OR_CITIZEN;
+    	}
+    	
+        if (claims.isArtist()) return UserRole.ARTIST;
+        if (claims.isOfficer()) return UserRole.OFFICIAL;
+        return UserRole.ANONYMOUS_OR_CITIZEN;
+    }
+
+    @Override
+    public List<UserAttribute> filterAttributes(List<UserAttribute> attributes, UserRole requesterRole, boolean isProfileOwner, UserRole profileRole) {
+        return attributes.stream()
+                .filter(attr -> {
+                    try {
+                        return shouldIncludeAttribute(UserAttributeKey.valueOf(attr.getName().toUpperCase().replace(":", "_").replace("-", "_")), requesterRole, isProfileOwner, profileRole);
+                    } catch (IllegalArgumentException e) {
+                        // If no enum constant is found, skip this attribute
+                        return false;
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+
+    private boolean shouldIncludeAttribute(UserAttributeKey attributeName, UserRole requesterRole, boolean isProfileOwner, UserRole profileRole) {
+        Set<UserAttributeKey> alwaysVisibleAttributes   = EnumSet.of(UserAttributeKey.CUSTOM_FACEBOOK,  UserAttributeKey.CUSTOM_INSTAGRAM, UserAttributeKey.CUSTOM_LINKEDIN, UserAttributeKey.CUSTOM_LOCATION, UserAttributeKey.CUSTOM_ORGANIZATION, UserAttributeKey.CUSTOM_JOBTITLE, UserAttributeKey.GIVEN_NAME, UserAttributeKey.FAMILY_NAME, UserAttributeKey.PICTURE, UserAttributeKey.COGNITO_USERNAME);
+        Set<UserAttributeKey> ownerOnlyAttributes       = EnumSet.of(UserAttributeKey.CUSTOM_LANG_ISO2, UserAttributeKey.COGNITO_GROUPS, UserAttributeKey.EMAIL, UserAttributeKey.PHONE_NUMBER);
+        Set<UserAttributeKey> officialVisibleForArtists = EnumSet.of(UserAttributeKey.EMAIL,            UserAttributeKey.PHONE_NUMBER);
+
+        // Attributes visible to everyone
+        if (alwaysVisibleAttributes.contains(attributeName)) {
+            return true;
+        }
+
+        // Attributes visible only to the profile owner
+        if (isProfileOwner && ownerOnlyAttributes.contains(attributeName)) {
+            return true;
+        }
+
+        // Email and phone_number are visible to officers when viewing an artist's profile6
+        if (profileRole == UserRole.ARTIST && requesterRole == UserRole.OFFICIAL && officialVisibleForArtists.contains(attributeName)) {
+            return true;
+        }
+
+        // Email and phone_number are visible to officers when viewing another officer's profile
+        if (profileRole == UserRole.OFFICIAL && requesterRole == UserRole.OFFICIAL && officialVisibleForArtists.contains(attributeName)) {
+            return true;
+        }
+
+        return false;
     }
 
     private String getCognitoIssuer(String userPoolId) {

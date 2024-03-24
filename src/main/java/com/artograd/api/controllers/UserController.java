@@ -1,6 +1,8 @@
 package com.artograd.api.controllers;
 
 import com.artograd.api.model.UserAttribute;
+import com.artograd.api.model.enums.UserRole;
+import com.artograd.api.model.system.UserTokenClaims;
 import com.artograd.api.services.IUserService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -21,10 +23,19 @@ public class UserController {
     private IUserService userService;
 
     @GetMapping("/{username}")
-    public ResponseEntity<?> getUserAttributesByUsername(@PathVariable String username) {
+    public ResponseEntity<List<UserAttribute>> getUserAttributesByUsername(@PathVariable String username, HttpServletRequest request) {
         return userService.getUserByUsername(username)
-                .map(user -> ResponseEntity.ok().body(user))
-                .orElse(ResponseEntity.notFound().build());
+                .map(user -> {
+                    UserTokenClaims claims = userService.getUserTokenClaims(request).orElse(null);
+                    boolean isProfileOwner = claims != null && username.equals(claims.getUsername());
+                    UserRole requesterRole = userService.determineRequesterRole(claims);
+
+                    List<UserAttribute> filteredAttributes = userService.filterAttributes(
+                            user.getAttributes(), requesterRole, isProfileOwner, user.getRole());
+
+                    return ResponseEntity.ok().body(filteredAttributes);
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{username}")
@@ -60,7 +71,7 @@ public class UserController {
      */
     private boolean isDenied(String username, HttpServletRequest request) {
         return userService.getUserTokenClaims(request)
-                .map(claims -> !username.equals(claims.getUsername()))
+                .map(claims -> !username.equalsIgnoreCase(claims.getUsername()))
                 .orElse(true); // Deny access if token is not present or username does not match
     }
 }
