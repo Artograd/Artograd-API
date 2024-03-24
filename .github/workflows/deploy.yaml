@@ -9,8 +9,8 @@ on:
 
 name: Deploy
 jobs:
-  build-and-upload:
-    name: Build application and application to S3 bucket
+  build:
+    name: Build application
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -25,6 +25,15 @@ jobs:
           mvn clean install
         env:
           AWS_COGNITO_USER_POOL_URI: ${{ secrets.AWS_COGNITO_USER_POOL_URI }}
+
+  upload-to-s3:
+    name: Upload to S3
+    runs-on: ubuntu-22.04
+    needs: build
+    if: (github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'))
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
       - name: Upload to S3
         uses: jakejarvis/s3-sync-action@master
         with:
@@ -39,7 +48,7 @@ jobs:
   deploy-lambda:
     name: Deploy lambda function
     runs-on: ubuntu-22.04
-    needs: build-and-upload
+    needs: upload-to-s3
     if: (github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'))
     steps:
       - name: Checkout
