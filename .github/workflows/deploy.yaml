@@ -25,6 +25,11 @@ jobs:
           mvn clean install
         env:
           AWS_COGNITO_USER_POOL_URI: ${{ secrets.AWS_COGNITO_USER_POOL_URI }}
+          AWS_COGNITO_CLIENT_ID: ${{ secrets.AWS_COGNITO_CLIENT_ID}}
+          ARTOGRAD_MONGO_DB_CONNECTTION: ${{ secrets.ARTOGRAD_MONGO_DB_CONNECTTION }}
+          CLOUDFRONT_DISTRIBUTION_DOMAIN: ${{ secrets.CLOUDFRONT_DISTRIBUTION_DOMAIN }}
+          AWS_COGNITO_USER_POOL_ID: ${{ secrets.AWS_COGNITO_USER_POOL_ID }}
+          ARTOGRAD_API_ENV: ${{ secrets.ARTOGRAD_API_ENV }}
 
   upload-to-s3:
     name: Upload to S3
