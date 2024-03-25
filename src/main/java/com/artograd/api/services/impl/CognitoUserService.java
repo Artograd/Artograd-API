@@ -160,9 +160,34 @@ public class CognitoUserService implements IUserService {
     }
 
     private boolean shouldIncludeAttribute(UserAttributeKey attributeName, UserRole requesterRole, boolean isProfileOwner, UserRole profileRole) {
-        Set<UserAttributeKey> alwaysVisibleAttributes   = EnumSet.of(UserAttributeKey.CUSTOM_FACEBOOK,  UserAttributeKey.CUSTOM_INSTAGRAM, UserAttributeKey.CUSTOM_LINKEDIN, UserAttributeKey.CUSTOM_LOCATION, UserAttributeKey.CUSTOM_ORGANIZATION, UserAttributeKey.CUSTOM_JOBTITLE, UserAttributeKey.GIVEN_NAME, UserAttributeKey.FAMILY_NAME, UserAttributeKey.PICTURE, UserAttributeKey.COGNITO_USERNAME);
-        Set<UserAttributeKey> ownerOnlyAttributes       = EnumSet.of(UserAttributeKey.CUSTOM_LANG_ISO2, UserAttributeKey.COGNITO_GROUPS, UserAttributeKey.EMAIL, UserAttributeKey.PHONE_NUMBER);
-        Set<UserAttributeKey> officialVisibleForArtists = EnumSet.of(UserAttributeKey.EMAIL,            UserAttributeKey.PHONE_NUMBER);
+        Set<UserAttributeKey> alwaysVisibleAttributes = EnumSet.of(
+        		UserAttributeKey.CUSTOM_FACEBOOK,  
+        		UserAttributeKey.CUSTOM_INSTAGRAM, 
+        		UserAttributeKey.CUSTOM_LINKEDIN, 
+        		UserAttributeKey.CUSTOM_LOCATION, 
+        		UserAttributeKey.CUSTOM_ORGANIZATION, 
+        		UserAttributeKey.CUSTOM_JOBTITLE, 
+        		UserAttributeKey.GIVEN_NAME, 
+        		UserAttributeKey.FAMILY_NAME, 
+        		UserAttributeKey.PICTURE, 
+        		UserAttributeKey.COGNITO_USERNAME);
+        
+        Set<UserAttributeKey> ownerOnlyAttributes = EnumSet.of(
+        		UserAttributeKey.CUSTOM_LANG_ISO2, 
+        		UserAttributeKey.COGNITO_GROUPS,   
+        		UserAttributeKey.EMAIL,
+        		UserAttributeKey.SHOW_EMAIL,
+        		UserAttributeKey.BANK_ACCOUNT,
+        		UserAttributeKey.BANK_BENEFICIARY,
+        		UserAttributeKey.BANK_BENEFICIARY_NAME,
+        		UserAttributeKey.BANK_IBAN,
+        		UserAttributeKey.BANK_SWIFT,
+        		UserAttributeKey.BANK_USE_DEFAULT,
+        		UserAttributeKey.PHONE_NUMBER);
+        
+        Set<UserAttributeKey> officialVisibleForArtists = EnumSet.of(
+        		UserAttributeKey.EMAIL,            
+        		UserAttributeKey.PHONE_NUMBER);
 
         // Attributes visible to everyone
         if (alwaysVisibleAttributes.contains(attributeName)) {

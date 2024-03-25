@@ -14,6 +14,13 @@ public enum UserAttributeKey {
     CUSTOM_LANG_ISO2("custom:lang_iso2"),
     COGNITO_GROUPS("cognito:groups"),
     EMAIL("email"),
+    SHOW_EMAIL("custom:show_email"),
+    BANK_ACCOUNT("custom:bank_account"),
+    BANK_BENEFICIARY("custom:bank_benefit_bank"),
+    BANK_BENEFICIARY_NAME("custom:bank_benefit_name"),
+    BANK_IBAN("custom:bank_iban"),
+    BANK_SWIFT("custom:bank_swift"),
+    BANK_USE_DEFAULT("custom:bank_use_default"),
     PHONE_NUMBER("phone_number");
 
     private final String attributeKey;
