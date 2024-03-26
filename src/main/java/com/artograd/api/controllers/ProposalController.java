@@ -66,5 +66,27 @@ public class ProposalController {
                 : ResponseEntity.notFound().build()
             : ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
+    
+    @PostMapping("/{proposalId}/like")
+    public ResponseEntity<?> likeProposal(@PathVariable String tenderId, @PathVariable String proposalId, HttpServletRequest request) {
+        UserTokenClaims claims = userService.getUserTokenClaims(request).orElse(null);
+        if (claims == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return proposalService.likeProposal(tenderId, proposalId, claims.getUsername())
+                .map(proposal -> ResponseEntity.ok().body(proposal))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/{proposalId}/unlike")
+    public ResponseEntity<?> unlikeProposal(@PathVariable String tenderId, @PathVariable String proposalId, HttpServletRequest request) {
+        UserTokenClaims claims = userService.getUserTokenClaims(request).orElse(null);
+        if (claims == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return proposalService.unlikeProposal(tenderId, proposalId, claims.getUsername())
+                .map(proposal -> ResponseEntity.ok().body(proposal))
+                .orElse(ResponseEntity.notFound().build());
+    }
 }
 

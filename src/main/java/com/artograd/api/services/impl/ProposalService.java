@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 
 @Service
 public class ProposalService implements IProposalService {
@@ -112,6 +113,26 @@ public class ProposalService implements IProposalService {
     }
     
     @Override
+    public Optional<Proposal> likeProposal(String tenderId, String proposalId, String username) {
+        return modifyLikes(tenderId, proposalId, username, (proposal, user) -> proposal.getLikedByUsers().add(user));
+    }
+
+    @Override
+    public Optional<Proposal> unlikeProposal(String tenderId, String proposalId, String username) {
+        return modifyLikes(tenderId, proposalId, username, (proposal, user) -> proposal.getLikedByUsers().remove(user));
+    }
+
+    private Optional<Proposal> modifyLikes(String tenderId, String proposalId, String username, BiConsumer<Proposal, String> operation) {
+        return getProposal(tenderId, proposalId)
+            .map(proposal -> {
+                operation.accept(proposal, username);
+                return updateProposal(tenderId, proposalId, proposal).orElse(null);
+            });
+    }
+
+
+    
+    @Override
     public boolean isProposalOperationAllowed(String tenderId, String proposalId, HttpServletRequest request) {
         return getProposal(tenderId, proposalId)
             .map(proposal -> cognitoService.getUserTokenClaims(request)
@@ -128,6 +149,7 @@ public class ProposalService implements IProposalService {
         
     	ModelMapper modelMapper = new ModelMapper();
         modelMapper.map(updatedProposal, existingProposal);
+        existingProposal.setLikedByUsers( updatedProposal.getLikedByUsers() ); //value of set is not copied so making it manually
 
         enrichProposalWithOwnerData(existingProposal);
     }
