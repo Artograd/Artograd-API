@@ -10,15 +10,14 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class UserAttribute {
-	
-	private String name;
 
-	private String value;
-	
-	public UserAttribute(String name, String value) {
-		super();
-		this.name = name;
-		this.value = value;
-	}
+  private String name;
 
+  private String value;
+
+  public UserAttribute(String name, String value) {
+    super();
+    this.name = name;
+    this.value = value;
+  }
 }

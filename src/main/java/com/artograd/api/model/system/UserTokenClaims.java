@@ -9,10 +9,9 @@ import lombok.Setter;
 @NoArgsConstructor
 public class UserTokenClaims {
 
-	private String username;
+  private String username;
 
-	private boolean isOfficer;
+  private boolean isOfficer;
 
-	private boolean isArtist;
-
+  private boolean isArtist;
 }

@@ -2,12 +2,11 @@ package com.artograd.api.taf;
 
 public interface ITestService {
 
-    TestUsers getTestUsers();
+  TestUsers getTestUsers();
 
-    String getIdToken(String username, String password);
+  String getIdToken(String username, String password);
 
-    String getDefaultTenderJson();
+  String getDefaultTenderJson();
 
-    String getDefaultProposalJson();
-
+  String getDefaultProposalJson();
 }

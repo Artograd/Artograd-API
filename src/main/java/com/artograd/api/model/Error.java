@@ -21,10 +21,9 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Error {
 
-    private String message;
+  private String message;
 
-    public Error(String errorMessage) {
-        message = errorMessage;
-    }
-
+  public Error(String errorMessage) {
+    message = errorMessage;
+  }
 }
