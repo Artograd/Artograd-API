@@ -108,14 +108,15 @@ jobs:
       - name: Get Lambda Function name and arn
         id: get-lambda-info
         run: |
-          LAMBDA_FUNCTION_NAME="ArtogradApiSpringBootLambda"
+          LAMBDA_FUNCTION_NAME="${{ secrets.LAMBDA_FUNCTION_NAME }}"
           LAMBDA_ARN=$(aws lambda get-function --function-name $LAMBDA_FUNCTION_NAME --query 'Configuration.FunctionArn' --output text)
           echo "::set-output name=lambda-arn::$LAMBDA_ARN"
           echo "::set-output name=lambda-name::$LAMBDA_FUNCTION_NAME"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: eu-central-1
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          LAMBDA_FUNCTION_NAME: ${{ secrets.LAMBDA_FUNCTION_NAME }}
       - name: Deploy API
         id: deploy-api
         uses: aws-actions/aws-cloudformation-github-deploy@v1
