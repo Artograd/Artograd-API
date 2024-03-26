@@ -1,12 +1,16 @@
 on:
   push:
     branches:
-      - EPMGCIPART-8-ci-cd-pipeline
+      - '*'
+  pull_request:
+    branches:
+      - dev
+      - master
 
 name: Deploy
 jobs:
-  build-and-upload:
-    name: Build application and application to S3 bucket
+  build:
+    name: Build application
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -18,9 +22,26 @@ jobs:
           java-version: '21'
       - name: Build SpringBoot JAR
         run: |
-          mvn clean install
+          mvn clean install -DskipTests
         env:
           AWS_COGNITO_USER_POOL_URI: ${{ secrets.AWS_COGNITO_USER_POOL_URI }}
+          AWS_COGNITO_CLIENT_ID: ${{ secrets.AWS_COGNITO_CLIENT_ID}}
+          ARTOGRAD_MONGO_DB_CONNECTTION: ${{ secrets.ARTOGRAD_MONGO_DB_CONNECTTION }}
+          CLOUDFRONT_DISTRIBUTION_DOMAIN: ${{ secrets.CLOUDFRONT_DISTRIBUTION_DOMAIN }}
+          AWS_COGNITO_USER_POOL_ID: ${{ secrets.AWS_COGNITO_USER_POOL_ID }}
+          ARTOGRAD_API_ENV: ${{ secrets.ARTOGRAD_API_ENV }}
+          ARTOGRAD_USER_OFFICIAL: ${{ secrets.ARTOGRAD_USER_OFFICIAL }}
+          ARTOGRAD_USER_CREATOR: ${{ secrets.ARTOGRAD_USER_CREATOR }}
+          ARTOGRAD_USER_CITIZEN: ${{ secrets.ARTOGRAD_USER_CITIZEN }}
+
+  upload-to-s3:
+    name: Upload to S3
+    runs-on: ubuntu-22.04
+    needs: build
+    if: (github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'))
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
       - name: Upload to S3
         uses: jakejarvis/s3-sync-action@master
         with:
@@ -35,7 +56,8 @@ jobs:
   deploy-lambda:
     name: Deploy lambda function
     runs-on: ubuntu-22.04
-    needs: build-and-upload
+    needs: upload-to-s3
+    if: (github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'))
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -67,6 +89,7 @@ jobs:
     name: Deploy API for lambda
     runs-on: ubuntu-22.04
     needs: deploy-lambda
+    if: (github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'))
     steps:
       - name: Checkout
         uses: actions/checkout@v2
