@@ -20,8 +20,7 @@ public class UserAttribute {
 	private String value;
 	
 	public UserAttribute(String name, String value) {
-		super();
-		this.enumKey = UserAttributeKey.fromString( name );
+		this.enumKey = UserAttributeKey.fromString(name);
 		this.name = name;
 		this.value = value;
 	}

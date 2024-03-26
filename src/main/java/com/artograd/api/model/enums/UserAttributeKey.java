@@ -1,6 +1,10 @@
 package com.artograd.api.model.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum UserAttributeKey {
+
     CUSTOM_FACEBOOK("custom:facebook"),
     CUSTOM_INSTAGRAM("custom:instagram"),
     CUSTOM_LINKEDIN("custom:linkedin"),
@@ -29,16 +33,12 @@ public enum UserAttributeKey {
         this.attributeKey = attributeKey;
     }
 
-    public String getAttributeKey() {
-        return attributeKey;
-    }
-
     public static UserAttributeKey fromString(String text) {
-        for (UserAttributeKey b : UserAttributeKey.values()) {
-            if (b.attributeKey.equalsIgnoreCase(text)) {
-                return b;
+        for (UserAttributeKey uak : UserAttributeKey.values()) {
+            if (uak.attributeKey.equalsIgnoreCase(text)) {
+                return uak;
             }
         }
-        return null;
+        throw new IllegalArgumentException("No UserAttributeKey matching " + text);
     }
 }

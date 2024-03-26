@@ -15,26 +15,47 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.RSAKeyProvider;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Service
 public class CognitoUserService implements IUserService {
-	
-	private static final Logger logger = LoggerFactory.getLogger(CognitoUserService.class);
+
+    private static final Set<UserAttributeKey> ALWAYS_VISIBLE_ATTRIBUTES = EnumSet.of(
+            UserAttributeKey.CUSTOM_FACEBOOK,
+            UserAttributeKey.CUSTOM_INSTAGRAM,
+            UserAttributeKey.CUSTOM_LINKEDIN,
+            UserAttributeKey.CUSTOM_LOCATION,
+            UserAttributeKey.CUSTOM_ORGANIZATION,
+            UserAttributeKey.CUSTOM_JOBTITLE,
+            UserAttributeKey.GIVEN_NAME,
+            UserAttributeKey.FAMILY_NAME,
+            UserAttributeKey.PICTURE,
+            UserAttributeKey.COGNITO_USERNAME);
+    private static final Set<UserAttributeKey> OWNER_ONLY_ATTRIBUTES = EnumSet.of(
+            UserAttributeKey.CUSTOM_LANG_ISO2,
+            UserAttributeKey.COGNITO_GROUPS,
+            UserAttributeKey.EMAIL,
+            UserAttributeKey.SHOW_EMAIL,
+            UserAttributeKey.BANK_ACCOUNT,
+            UserAttributeKey.BANK_BENEFICIARY,
+            UserAttributeKey.BANK_BENEFICIARY_NAME,
+            UserAttributeKey.BANK_IBAN,
+            UserAttributeKey.BANK_SWIFT,
+            UserAttributeKey.BANK_USE_DEFAULT,
+            UserAttributeKey.PHONE_NUMBER);
+    private static final Set<UserAttributeKey> OFFICIAL_VISIBLE_FOR_ARTISTS = EnumSet.of(
+            UserAttributeKey.EMAIL,
+            UserAttributeKey.PHONE_NUMBER);
+    private static final Logger logger = LoggerFactory.getLogger(CognitoUserService.class);
 
     @Value("${aws.cognito.userPoolId}")
     private String userPoolId;
@@ -50,7 +71,7 @@ public class CognitoUserService implements IUserService {
             cognitoClient.adminDeleteUser(deleteRequest);
             return true;
         } catch (Exception e) {
-            logger.error("Error deleting user by username: ", e.getMessage(), e);
+            logger.error("Error deleting user by username: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -75,7 +96,7 @@ public class CognitoUserService implements IUserService {
             cognitoClient.adminUpdateUserAttributes(updateRequest);
             return true;
         } catch (Exception e) {
-            logger.error("Error updating user attributes by username: ", e.getMessage(), e);
+            logger.error("Error updating user attributes by username: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -101,14 +122,14 @@ public class CognitoUserService implements IUserService {
             
             AdminListGroupsForUserResponse responseGroups = cognitoClient.adminListGroupsForUser(requestGetGroups);
             
-            if (responseGroups.groups().size() > 0)  {
+            if (!responseGroups.groups().isEmpty())  {
             	userAttrsResult.add(new UserAttribute("cognito:groups", responseGroups.groups().get(0).groupName()));
             }
             
-            return Optional.ofNullable(new User(userAttrsResult));
+            return Optional.of(new User(userAttrsResult));
         } catch (Exception e) {
-            logger.error("Error fetching user by username: ", e.getMessage(), e);
-            return Optional.ofNullable(null);
+            logger.error("Error fetching user by username: {}", e.getMessage(), e);
+            return Optional.empty();
         }
     }
     
@@ -129,19 +150,22 @@ public class CognitoUserService implements IUserService {
                 return Optional.of(extractClaims(jwt));
             }
         } catch (Exception e) {
-            logger.error("Error fetching user token claims ", e.getMessage(), e);
+            logger.error("Error fetching user token claims: {}", e.getMessage(), e);
         }
         return Optional.empty();
     }
     
     @Override
     public UserRole determineRequesterRole(UserTokenClaims claims) {
-    	if ( claims == null ) {
+    	if (claims == null) {
     		return UserRole.ANONYMOUS_OR_CITIZEN;
     	}
-    	
-        if (claims.isArtist()) return UserRole.ARTIST;
-        if (claims.isOfficer()) return UserRole.OFFICIAL;
+        if (claims.isArtist()){
+            return UserRole.ARTIST;
+        }
+        if (claims.isOfficer()){
+            return UserRole.OFFICIAL;
+        }
         return UserRole.ANONYMOUS_OR_CITIZEN;
     }
 
@@ -150,66 +174,44 @@ public class CognitoUserService implements IUserService {
         return attributes.stream()
                 .filter(attr -> {
                     try {
-                        return shouldIncludeAttribute(UserAttributeKey.valueOf(attr.getName().toUpperCase().replace(":", "_").replace("-", "_")), requesterRole, isProfileOwner, profileRole);
+                        String attributeName = attr.getName().toUpperCase().replaceAll("[-:]", "_");
+                        return shouldIncludeAttribute(UserAttributeKey.valueOf(attributeName), requesterRole, isProfileOwner, profileRole);
                     } catch (IllegalArgumentException e) {
                         // If no enum constant is found, skip this attribute
                         return false;
                     }
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
-    private boolean shouldIncludeAttribute(UserAttributeKey attributeName, UserRole requesterRole, boolean isProfileOwner, UserRole profileRole) {
-        Set<UserAttributeKey> alwaysVisibleAttributes = EnumSet.of(
-        		UserAttributeKey.CUSTOM_FACEBOOK,  
-        		UserAttributeKey.CUSTOM_INSTAGRAM, 
-        		UserAttributeKey.CUSTOM_LINKEDIN, 
-        		UserAttributeKey.CUSTOM_LOCATION, 
-        		UserAttributeKey.CUSTOM_ORGANIZATION, 
-        		UserAttributeKey.CUSTOM_JOBTITLE, 
-        		UserAttributeKey.GIVEN_NAME, 
-        		UserAttributeKey.FAMILY_NAME, 
-        		UserAttributeKey.PICTURE, 
-        		UserAttributeKey.COGNITO_USERNAME);
-        
-        Set<UserAttributeKey> ownerOnlyAttributes = EnumSet.of(
-        		UserAttributeKey.CUSTOM_LANG_ISO2, 
-        		UserAttributeKey.COGNITO_GROUPS,   
-        		UserAttributeKey.EMAIL,
-        		UserAttributeKey.SHOW_EMAIL,
-        		UserAttributeKey.BANK_ACCOUNT,
-        		UserAttributeKey.BANK_BENEFICIARY,
-        		UserAttributeKey.BANK_BENEFICIARY_NAME,
-        		UserAttributeKey.BANK_IBAN,
-        		UserAttributeKey.BANK_SWIFT,
-        		UserAttributeKey.BANK_USE_DEFAULT,
-        		UserAttributeKey.PHONE_NUMBER);
-        
-        Set<UserAttributeKey> officialVisibleForArtists = EnumSet.of(
-        		UserAttributeKey.EMAIL,            
-        		UserAttributeKey.PHONE_NUMBER);
-
-        // Attributes visible to everyone
-        if (alwaysVisibleAttributes.contains(attributeName)) {
+    private boolean shouldIncludeAttribute(UserAttributeKey attributeName, UserRole requesterRole,
+                                           boolean isProfileOwner, UserRole profileRole) {
+        if (isAttributeVisibleToEveryone(attributeName)) {
             return true;
         }
-
-        // Attributes visible only to the profile owner
-        if (isProfileOwner && ownerOnlyAttributes.contains(attributeName)) {
+        if (isAttributeVisibleOnlyToProfileOwner(attributeName, isProfileOwner)) {
             return true;
         }
-
-        // Email and phone_number are visible to officers when viewing an artist's profile6
-        if (profileRole == UserRole.ARTIST && requesterRole == UserRole.OFFICIAL && officialVisibleForArtists.contains(attributeName)) {
+        if (isAttributeInArtistProfileAndOfficersHaveAccess(attributeName, requesterRole, profileRole)) {
             return true;
         }
+        return isAttributeInOfficerProfileAndOfficersHaveAccess(attributeName, requesterRole, profileRole);
+    }
 
-        // Email and phone_number are visible to officers when viewing another officer's profile
-        if (profileRole == UserRole.OFFICIAL && requesterRole == UserRole.OFFICIAL && officialVisibleForArtists.contains(attributeName)) {
-            return true;
-        }
+    private boolean isAttributeVisibleToEveryone(UserAttributeKey attributeName) {
+        return ALWAYS_VISIBLE_ATTRIBUTES.contains(attributeName);
+    }
 
-        return false;
+    private boolean isAttributeVisibleOnlyToProfileOwner(UserAttributeKey attributeName, boolean isProfileOwner) {
+        return isProfileOwner && OWNER_ONLY_ATTRIBUTES.contains(attributeName);
+    }
+
+    private boolean isAttributeInArtistProfileAndOfficersHaveAccess(UserAttributeKey attributeName, UserRole requesterRole, UserRole profileRole) {
+        return profileRole == UserRole.ARTIST && requesterRole == UserRole.OFFICIAL && OFFICIAL_VISIBLE_FOR_ARTISTS.contains(attributeName);
+    }
+
+    private boolean isAttributeInOfficerProfileAndOfficersHaveAccess(UserAttributeKey attributeName, UserRole requesterRole, UserRole profileRole) {
+        return profileRole == UserRole.OFFICIAL && requesterRole == UserRole.OFFICIAL && OFFICIAL_VISIBLE_FOR_ARTISTS.contains(attributeName);
     }
 
     private String getCognitoIssuer(String userPoolId) {
@@ -250,7 +252,7 @@ public class CognitoUserService implements IUserService {
             try {
                 return (RSAPublicKey) jwkProvider.get(kid).getPublicKey();
             } catch (Exception e) {
-            	logger.error("Error fetching public key:", e.getMessage(), e);
+            	logger.error("Error fetching public key: {}", e.getMessage(), e);
                 return null;
             }
         }

@@ -22,11 +22,15 @@ public class User {
 	
 	public UserRole getRole() {
 		for (UserAttribute userAttribute : attributes) {
-			if ( userAttribute.getEnumKey() != null && userAttribute.getEnumKey().equals( UserAttributeKey.COGNITO_GROUPS ) ) {
-				return UserRole.fromString( userAttribute.getValue() ) ;
+			if (isCognitoGroupAttribute(userAttribute)) {
+				return UserRole.fromString(userAttribute.getValue()) ;
 			} 
 		}
-		return null;
+		return UserRole.ANONYMOUS_OR_CITIZEN;
+	}
+
+	private boolean isCognitoGroupAttribute(UserAttribute userAttribute) {
+		return userAttribute.getEnumKey() != null && userAttribute.getEnumKey().equals(UserAttributeKey.COGNITO_GROUPS);
 	}
 
 }
