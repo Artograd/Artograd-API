@@ -22,7 +22,7 @@ jobs:
           java-version: '21'
       - name: Build SpringBoot JAR
         run: |
-          mvn clean install
+          mvn clean install -DskipTests
         env:
           AWS_COGNITO_USER_POOL_URI: ${{ secrets.AWS_COGNITO_USER_POOL_URI }}
           AWS_COGNITO_CLIENT_ID: ${{ secrets.AWS_COGNITO_CLIENT_ID}}
@@ -30,6 +30,9 @@ jobs:
           CLOUDFRONT_DISTRIBUTION_DOMAIN: ${{ secrets.CLOUDFRONT_DISTRIBUTION_DOMAIN }}
           AWS_COGNITO_USER_POOL_ID: ${{ secrets.AWS_COGNITO_USER_POOL_ID }}
           ARTOGRAD_API_ENV: ${{ secrets.ARTOGRAD_API_ENV }}
+          ARTOGRAD_USER_OFFICIAL: ${{ secrets.ARTOGRAD_USER_OFFICIAL }}
+          ARTOGRAD_USER_CREATOR: ${{ secrets.ARTOGRAD_USER_CREATOR }}
+          ARTOGRAD_USER_CITIZEN: ${{ secrets.ARTOGRAD_USER_CITIZEN }}
 
   upload-to-s3:
     name: Upload to S3

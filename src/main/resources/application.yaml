@@ -4,3 +4,24 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${AWS_COGNITO_USER_POOL_URI}
+  servlet:
+    multipart:
+      max-file-size: 1MB
+      max-request-size: 1MB # Adjust as needed to accommodate multiple files or additional data in the request
+  data:
+    mongodb:
+      uri: ${ARTOGRAD_MONGO_DB_CONNECTTION}
+
+springdoc:
+  packagesToScan: com.artograd.api.model, com.artograd.api.controllers
+
+aws:
+  s3:
+    bucket-name: artograd-media
+  cloudfront:
+    distribution-domain: ${CLOUDFRONT_DISTRIBUTION_DOMAIN}
+  cognito:
+    userPoolId: ${AWS_COGNITO_USER_POOL_ID}
+
+artograd:
+  env: ${ARTOGRAD_API_ENV}

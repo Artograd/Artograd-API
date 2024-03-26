@@ -12,18 +12,19 @@
  */
 package com.artograd.api.model;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
 public class Error {
+
     private String message;
 
     public Error(String errorMessage) {
         message = errorMessage;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
 }
