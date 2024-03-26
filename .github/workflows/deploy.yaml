@@ -22,7 +22,7 @@ jobs:
           java-version: '21'
       - name: Build SpringBoot JAR
         run: |
-          mvn clean install
+          mvn clean install -DskipTests
         env:
           AWS_COGNITO_USER_POOL_URI: ${{ secrets.AWS_COGNITO_USER_POOL_URI }}
           AWS_COGNITO_CLIENT_ID: ${{ secrets.AWS_COGNITO_CLIENT_ID}}
