@@ -1,12 +1,16 @@
 on:
   push:
     branches:
-      - EPMGCIPART-8-ci-cd-pipeline
+      - '*'
+  pull_request:
+    branches:
+      - dev
+      - master
 
 name: Deploy
 jobs:
-  build-and-upload:
-    name: Build application and application to S3 bucket
+  build:
+    name: Build application
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -18,9 +22,26 @@ jobs:
           java-version: '21'
       - name: Build SpringBoot JAR
         run: |
-          mvn clean install
+          mvn clean install -DskipTests
         env:
           AWS_COGNITO_USER_POOL_URI: ${{ secrets.AWS_COGNITO_USER_POOL_URI }}
+          AWS_COGNITO_CLIENT_ID: ${{ secrets.AWS_COGNITO_CLIENT_ID}}
+          ARTOGRAD_MONGO_DB_CONNECTTION: ${{ secrets.ARTOGRAD_MONGO_DB_CONNECTTION }}
+          CLOUDFRONT_DISTRIBUTION_DOMAIN: ${{ secrets.CLOUDFRONT_DISTRIBUTION_DOMAIN }}
+          AWS_COGNITO_USER_POOL_ID: ${{ secrets.AWS_COGNITO_USER_POOL_ID }}
+          ARTOGRAD_API_ENV: ${{ secrets.ARTOGRAD_API_ENV }}
+          ARTOGRAD_USER_OFFICIAL: ${{ secrets.ARTOGRAD_USER_OFFICIAL }}
+          ARTOGRAD_USER_CREATOR: ${{ secrets.ARTOGRAD_USER_CREATOR }}
+          ARTOGRAD_USER_CITIZEN: ${{ secrets.ARTOGRAD_USER_CITIZEN }}
+
+  upload-to-s3:
+    name: Upload to S3
+    runs-on: ubuntu-22.04
+    needs: build
+    if: (github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'))
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
       - name: Upload to S3
         uses: jakejarvis/s3-sync-action@master
         with:
@@ -35,7 +56,8 @@ jobs:
   deploy-lambda:
     name: Deploy lambda function
     runs-on: ubuntu-22.04
-    needs: build-and-upload
+    needs: upload-to-s3
+    if: (github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'))
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -67,6 +89,7 @@ jobs:
     name: Deploy API for lambda
     runs-on: ubuntu-22.04
     needs: deploy-lambda
+    if: (github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'))
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -88,14 +111,15 @@ jobs:
       - name: Get Lambda Function name and arn
         id: get-lambda-info
         run: |
-          LAMBDA_FUNCTION_NAME="ArtogradApiSpringBootLambda"
+          LAMBDA_FUNCTION_NAME="${{ secrets.LAMBDA_FUNCTION_NAME }}"
           LAMBDA_ARN=$(aws lambda get-function --function-name $LAMBDA_FUNCTION_NAME --query 'Configuration.FunctionArn' --output text)
           echo "::set-output name=lambda-arn::$LAMBDA_ARN"
           echo "::set-output name=lambda-name::$LAMBDA_FUNCTION_NAME"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: eu-central-1
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          LAMBDA_FUNCTION_NAME: ${{ secrets.LAMBDA_FUNCTION_NAME }}
       - name: Deploy API
         id: deploy-api
         uses: aws-actions/aws-cloudformation-github-deploy@v1
