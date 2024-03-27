@@ -13,7 +13,6 @@ public interface IUserService {
     boolean updateUserAttributes(String userName, List<UserAttribute> attributes);
     Optional<User> getUserByUsername(String username);
     Optional<UserTokenClaims> getUserTokenClaims(HttpServletRequest request);
-	UserRole determineRequesterRole(UserTokenClaims claims);
 	List<UserAttribute> filterAttributes(List<UserAttribute> attributes, UserRole requesterRole, boolean isProfileOwner,
 			UserRole profileRole);
 }

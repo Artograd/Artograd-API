@@ -26,9 +26,9 @@ public class UserController {
     public ResponseEntity<List<UserAttribute>> getUserAttributesByUsername(@PathVariable String username, HttpServletRequest request) {
         return userService.getUserByUsername(username)
                 .map(user -> {
-                    UserTokenClaims claims = userService.getUserTokenClaims(request).orElse(null);
-                    boolean isProfileOwner = claims != null && username.equals(claims.getUsername());
-                    UserRole requesterRole = userService.determineRequesterRole(claims);
+                    UserTokenClaims claims = userService.getUserTokenClaims(request).orElseGet(UserTokenClaims::new);
+                    boolean isProfileOwner = username.equals(claims.getUsername());
+                    UserRole requesterRole = claims.getUserRole();
 
                     List<UserAttribute> filteredAttributes = userService.filterAttributes(
                             user.getAttributes(), requesterRole, isProfileOwner, user.getRole());

@@ -114,25 +114,25 @@ public class CognitoUserService implements IUserService {
             for (AttributeType attr : getUserResponse.userAttributes()) {
                 userAttrsResult.add(new UserAttribute(attr.name(), attr.value()));
             }
-            
+
             AdminListGroupsForUserRequest requestGetGroups = AdminListGroupsForUserRequest.builder()
                 .username(username)
                 .userPoolId(userPoolId)
                 .build();
-            
+
             AdminListGroupsForUserResponse responseGroups = cognitoClient.adminListGroupsForUser(requestGetGroups);
-            
+
             if (!responseGroups.groups().isEmpty())  {
             	userAttrsResult.add(new UserAttribute("cognito:groups", responseGroups.groups().get(0).groupName()));
             }
-            
+
             return Optional.of(new User(userAttrsResult));
         } catch (Exception e) {
             logger.error("Error fetching user by username: {}", e.getMessage(), e);
             return Optional.empty();
         }
     }
-    
+
     @Override
     public Optional<UserTokenClaims> getUserTokenClaims(HttpServletRequest request) {
         try {
@@ -154,48 +154,34 @@ public class CognitoUserService implements IUserService {
         }
         return Optional.empty();
     }
-    
-    @Override
-    public UserRole determineRequesterRole(UserTokenClaims claims) {
-    	if (claims == null) {
-    		return UserRole.ANONYMOUS_OR_CITIZEN;
-    	}
-        if (claims.isArtist()){
-            return UserRole.ARTIST;
-        }
-        if (claims.isOfficer()){
-            return UserRole.OFFICIAL;
-        }
-        return UserRole.ANONYMOUS_OR_CITIZEN;
-    }
 
     @Override
-    public List<UserAttribute> filterAttributes(List<UserAttribute> attributes, UserRole requesterRole, boolean isProfileOwner, UserRole profileRole) {
+    public List<UserAttribute> filterAttributes(List<UserAttribute> attributes, UserRole requesterRole,
+                                                boolean isProfileOwner, UserRole profileRole) {
         return attributes.stream()
-                .filter(attr -> {
-                    try {
-                        String attributeName = attr.getName().toUpperCase().replaceAll("[-:]", "_");
-                        return shouldIncludeAttribute(UserAttributeKey.valueOf(attributeName), requesterRole, isProfileOwner, profileRole);
-                    } catch (IllegalArgumentException e) {
-                        // If no enum constant is found, skip this attribute
-                        return false;
-                    }
-                })
+                .filter(attr -> shouldIncludeAttribute(attr, requesterRole, isProfileOwner, profileRole))
                 .toList();
     }
 
-    private boolean shouldIncludeAttribute(UserAttributeKey attributeName, UserRole requesterRole,
+    private boolean shouldIncludeAttribute(UserAttribute attribute, UserRole requesterRole,
                                            boolean isProfileOwner, UserRole profileRole) {
-        if (isAttributeVisibleToEveryone(attributeName)) {
+        UserAttributeKey attributeKey;
+        try {
+            String attributeName = attribute.getName().toUpperCase().replaceAll("[-:]", "_");
+            attributeKey = UserAttributeKey.valueOf(attributeName);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+        if (isAttributeVisibleToEveryone(attributeKey)) {
             return true;
         }
-        if (isAttributeVisibleOnlyToProfileOwner(attributeName, isProfileOwner)) {
+        if (isAttributeVisibleOnlyToProfileOwner(attributeKey, isProfileOwner)) {
             return true;
         }
-        if (isAttributeInArtistProfileAndOfficersHaveAccess(attributeName, requesterRole, profileRole)) {
+        if (isAttributeInArtistProfileAndOfficersHaveAccess(attributeKey, requesterRole, profileRole)) {
             return true;
         }
-        return isAttributeInOfficerProfileAndOfficersHaveAccess(attributeName, requesterRole, profileRole);
+        return isAttributeInOfficerProfileAndOfficersHaveAccess(attributeKey, requesterRole, profileRole);
     }
 
     private boolean isAttributeVisibleToEveryone(UserAttributeKey attributeName) {
@@ -223,20 +209,22 @@ public class CognitoUserService implements IUserService {
         UserTokenClaims tokenClaims = new UserTokenClaims();
         tokenClaims.setUsername(jwt.getClaim("cognito:username").asString());
         String[] roles = jwt.getClaim("cognito:groups").asArray(String.class);
-        tokenClaims.setArtist(hasRole(roles, "Artists"));
-        tokenClaims.setOfficer(hasRole(roles, "Officials"));
+        tokenClaims.setUserRole(extractUserRole(roles));
         return tokenClaims;
     }
 
-    private boolean hasRole(String[] roles, String role) {
+    private UserRole extractUserRole(String[] roles) {
         if (roles != null) {
             for (String r : roles) {
-                if (r.equals(role)) {
-                    return true;
+                if (r.equals(UserRole.ARTIST.getRoleName())) {
+                    return UserRole.ARTIST;
+                }
+                if (r.equals(UserRole.OFFICIAL.getRoleName())) {
+                    return UserRole.OFFICIAL;
                 }
             }
         }
-        return false;
+        return UserRole.ANONYMOUS_OR_CITIZEN;
     }
 
     private static class CognitoRSAKeyProvider implements RSAKeyProvider {
