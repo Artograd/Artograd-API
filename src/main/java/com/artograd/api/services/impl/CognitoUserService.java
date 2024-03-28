@@ -2,6 +2,8 @@ package com.artograd.api.services.impl;
 
 import com.artograd.api.model.User;
 import com.artograd.api.model.UserAttribute;
+import com.artograd.api.model.enums.UserAttributeKey;
+import com.artograd.api.model.enums.UserRole;
 import com.artograd.api.model.system.UserTokenClaims;
 import com.artograd.api.services.IUserService;
 import com.artograd.api.utils.CommonUtils;
@@ -13,23 +15,47 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.RSAKeyProvider;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class CognitoUserService implements IUserService {
-	
-	private static final Logger logger = LoggerFactory.getLogger(CognitoUserService.class);
+
+    private static final Set<UserAttributeKey> ALWAYS_VISIBLE_ATTRIBUTES = EnumSet.of(
+            UserAttributeKey.CUSTOM_FACEBOOK,
+            UserAttributeKey.CUSTOM_INSTAGRAM,
+            UserAttributeKey.CUSTOM_LINKEDIN,
+            UserAttributeKey.CUSTOM_LOCATION,
+            UserAttributeKey.CUSTOM_ORGANIZATION,
+            UserAttributeKey.CUSTOM_JOBTITLE,
+            UserAttributeKey.GIVEN_NAME,
+            UserAttributeKey.FAMILY_NAME,
+            UserAttributeKey.PICTURE,
+            UserAttributeKey.COGNITO_USERNAME);
+    private static final Set<UserAttributeKey> OWNER_ONLY_ATTRIBUTES = EnumSet.of(
+            UserAttributeKey.CUSTOM_LANG_ISO2,
+            UserAttributeKey.COGNITO_GROUPS,
+            UserAttributeKey.EMAIL,
+            UserAttributeKey.SHOW_EMAIL,
+            UserAttributeKey.BANK_ACCOUNT,
+            UserAttributeKey.BANK_BENEFICIARY,
+            UserAttributeKey.BANK_BENEFICIARY_NAME,
+            UserAttributeKey.BANK_IBAN,
+            UserAttributeKey.BANK_SWIFT,
+            UserAttributeKey.BANK_USE_DEFAULT,
+            UserAttributeKey.PHONE_NUMBER);
+    private static final Set<UserAttributeKey> OFFICIAL_VISIBLE_FOR_ARTISTS = EnumSet.of(
+            UserAttributeKey.EMAIL,
+            UserAttributeKey.PHONE_NUMBER);
+    private static final Logger logger = LoggerFactory.getLogger(CognitoUserService.class);
 
     @Value("${aws.cognito.userPoolId}")
     private String userPoolId;
@@ -45,7 +71,7 @@ public class CognitoUserService implements IUserService {
             cognitoClient.adminDeleteUser(deleteRequest);
             return true;
         } catch (Exception e) {
-            logger.error("Error deleting user by username: ", e.getMessage(), e);
+            logger.error("Error deleting user by username: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -70,7 +96,7 @@ public class CognitoUserService implements IUserService {
             cognitoClient.adminUpdateUserAttributes(updateRequest);
             return true;
         } catch (Exception e) {
-            logger.error("Error updating user attributes by username: ", e.getMessage(), e);
+            logger.error("Error updating user attributes by username: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -88,13 +114,25 @@ public class CognitoUserService implements IUserService {
             for (AttributeType attr : getUserResponse.userAttributes()) {
                 userAttrsResult.add(new UserAttribute(attr.name(), attr.value()));
             }
-            return Optional.ofNullable(new User(userAttrsResult));
+
+            AdminListGroupsForUserRequest requestGetGroups = AdminListGroupsForUserRequest.builder()
+                .username(username)
+                .userPoolId(userPoolId)
+                .build();
+
+            AdminListGroupsForUserResponse responseGroups = cognitoClient.adminListGroupsForUser(requestGetGroups);
+
+            if (!responseGroups.groups().isEmpty())  {
+            	userAttrsResult.add(new UserAttribute("cognito:groups", responseGroups.groups().getFirst().groupName()));
+            }
+
+            return Optional.of(new User(userAttrsResult));
         } catch (Exception e) {
-            logger.error("Error fetching user by username: ", e.getMessage(), e);
-            return Optional.ofNullable(null);
+            logger.error("Error fetching user by username: {}", e.getMessage(), e);
+            return Optional.empty();
         }
     }
-    
+
     @Override
     public Optional<UserTokenClaims> getUserTokenClaims(HttpServletRequest request) {
         try {
@@ -112,9 +150,54 @@ public class CognitoUserService implements IUserService {
                 return Optional.of(extractClaims(jwt));
             }
         } catch (Exception e) {
-            logger.error("Error fetching user token claims ", e.getMessage(), e);
+            logger.error("Error fetching user token claims: {}", e.getMessage(), e);
         }
         return Optional.empty();
+    }
+
+    @Override
+    public List<UserAttribute> filterAttributes(List<UserAttribute> attributes, UserRole requesterRole,
+                                                boolean isProfileOwner, UserRole profileRole) {
+        return attributes.stream()
+                .filter(attr -> shouldIncludeAttribute(attr, requesterRole, isProfileOwner, profileRole))
+                .toList();
+    }
+
+    private boolean shouldIncludeAttribute(UserAttribute attribute, UserRole requesterRole,
+                                           boolean isProfileOwner, UserRole profileRole) {
+        UserAttributeKey attributeKey;
+        try {
+            String attributeName = attribute.getName().toUpperCase().replaceAll("[-:]", "_");
+            attributeKey = UserAttributeKey.valueOf(attributeName);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+        if (isAttributeVisibleToEveryone(attributeKey)) {
+            return true;
+        }
+        if (isAttributeVisibleOnlyToProfileOwner(attributeKey, isProfileOwner)) {
+            return true;
+        }
+        if (isAttributeInArtistProfileAndOfficersHaveAccess(attributeKey, requesterRole, profileRole)) {
+            return true;
+        }
+        return isAttributeInOfficerProfileAndOfficersHaveAccess(attributeKey, requesterRole, profileRole);
+    }
+
+    private boolean isAttributeVisibleToEveryone(UserAttributeKey attributeName) {
+        return ALWAYS_VISIBLE_ATTRIBUTES.contains(attributeName);
+    }
+
+    private boolean isAttributeVisibleOnlyToProfileOwner(UserAttributeKey attributeName, boolean isProfileOwner) {
+        return isProfileOwner && OWNER_ONLY_ATTRIBUTES.contains(attributeName);
+    }
+
+    private boolean isAttributeInArtistProfileAndOfficersHaveAccess(UserAttributeKey attributeName, UserRole requesterRole, UserRole profileRole) {
+        return profileRole == UserRole.ARTIST && requesterRole == UserRole.OFFICIAL && OFFICIAL_VISIBLE_FOR_ARTISTS.contains(attributeName);
+    }
+
+    private boolean isAttributeInOfficerProfileAndOfficersHaveAccess(UserAttributeKey attributeName, UserRole requesterRole, UserRole profileRole) {
+        return profileRole == UserRole.OFFICIAL && requesterRole == UserRole.OFFICIAL && OFFICIAL_VISIBLE_FOR_ARTISTS.contains(attributeName);
     }
 
     private String getCognitoIssuer(String userPoolId) {
@@ -126,20 +209,21 @@ public class CognitoUserService implements IUserService {
         UserTokenClaims tokenClaims = new UserTokenClaims();
         tokenClaims.setUsername(jwt.getClaim("cognito:username").asString());
         String[] roles = jwt.getClaim("cognito:groups").asArray(String.class);
-        tokenClaims.setArtist(hasRole(roles, "Artists"));
-        tokenClaims.setOfficer(hasRole(roles, "Officials"));
+        tokenClaims.setUserRole(extractUserRole(roles));
         return tokenClaims;
     }
 
-    private boolean hasRole(String[] roles, String role) {
-        if (roles != null) {
-            for (String r : roles) {
-                if (r.equals(role)) {
-                    return true;
-                }
-            }
+    private UserRole extractUserRole(String[] roles) {
+        if (roles == null) {
+            return UserRole.ANONYMOUS_OR_CITIZEN;
         }
-        return false;
+        if (roles.length != 1) {
+            throw new IllegalArgumentException("Token has " + roles.length + " groups when only 1 is allowed");
+        }
+        return Arrays.stream(UserRole.values())
+                .filter(v -> v.getRoleName().equals(roles[0]))
+                .findFirst()
+                .orElse(UserRole.ANONYMOUS_OR_CITIZEN);
     }
 
     private static class CognitoRSAKeyProvider implements RSAKeyProvider {
@@ -155,7 +239,7 @@ public class CognitoUserService implements IUserService {
             try {
                 return (RSAPublicKey) jwkProvider.get(kid).getPublicKey();
             } catch (Exception e) {
-            	logger.error("Error fetching public key:", e.getMessage(), e);
+            	logger.error("Error fetching public key: {}", e.getMessage(), e);
                 return null;
             }
         }
