@@ -123,7 +123,7 @@ public class CognitoUserService implements IUserService {
             AdminListGroupsForUserResponse responseGroups = cognitoClient.adminListGroupsForUser(requestGetGroups);
 
             if (!responseGroups.groups().isEmpty())  {
-            	userAttrsResult.add(new UserAttribute("cognito:groups", responseGroups.groups().get(0).groupName()));
+            	userAttrsResult.add(new UserAttribute("cognito:groups", responseGroups.groups().getFirst().groupName()));
             }
 
             return Optional.of(new User(userAttrsResult));
@@ -214,17 +214,16 @@ public class CognitoUserService implements IUserService {
     }
 
     private UserRole extractUserRole(String[] roles) {
-        if (roles != null) {
-            for (String r : roles) {
-                if (r.equals(UserRole.ARTIST.getRoleName())) {
-                    return UserRole.ARTIST;
-                }
-                if (r.equals(UserRole.OFFICIAL.getRoleName())) {
-                    return UserRole.OFFICIAL;
-                }
-            }
+        if (roles == null) {
+            return UserRole.ANONYMOUS_OR_CITIZEN;
         }
-        return UserRole.ANONYMOUS_OR_CITIZEN;
+        if (roles.length != 1) {
+            throw new IllegalArgumentException("Token has " + roles.length + " groups when only 1 is allowed");
+        }
+        return Arrays.stream(UserRole.values())
+                .filter(v -> v.getRoleName().equals(roles[0]))
+                .findFirst()
+                .orElse(UserRole.ANONYMOUS_OR_CITIZEN);
     }
 
     private static class CognitoRSAKeyProvider implements RSAKeyProvider {
