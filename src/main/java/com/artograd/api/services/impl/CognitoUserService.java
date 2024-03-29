@@ -212,6 +212,8 @@ public class CognitoUserService implements IUserService {
         tokenClaims.setUsername(jwt.getClaim("cognito:username").asString());
         String[] roles = jwt.getClaim("cognito:groups").asArray(String.class);
         tokenClaims.setUserRole(extractUserRole(roles));
+        tokenClaims.setOfficer( tokenClaims.getUserRole().equals( UserRole.OFFICIAL ) );
+        tokenClaims.setArtist( tokenClaims.getUserRole().equals( UserRole.ARTIST ) );
         return tokenClaims;
     }
 
@@ -222,10 +224,7 @@ public class CognitoUserService implements IUserService {
         if (roles.length != 1) {
             throw new IllegalArgumentException("Token has " + roles.length + " groups when only 1 is allowed");
         }
-        return Arrays.stream(UserRole.values())
-                .filter(v -> v.getRoleName().equals(roles[0]))
-                .findFirst()
-                .orElse(UserRole.ANONYMOUS_OR_CITIZEN);
+        return UserRole.fromString(roles[0]);
     }
 
     private static class CognitoRSAKeyProvider implements RSAKeyProvider {

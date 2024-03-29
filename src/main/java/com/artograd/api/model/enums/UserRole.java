@@ -21,6 +21,6 @@ public enum UserRole {
                 return role;
             }
         }
-        throw new IllegalArgumentException("No UserRole matching " + text);
+        return ANONYMOUS_OR_CITIZEN;
     }
 }
