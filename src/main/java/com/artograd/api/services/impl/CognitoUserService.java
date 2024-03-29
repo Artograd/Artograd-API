@@ -147,6 +147,9 @@ public class CognitoUserService implements IUserService {
             String token = CommonUtils.parseToken(request);
             if (token != null) {
                 DecodedJWT jwt = verifier.verify(token);
+            	//uncomment it for local usage and debugging because time in AWS may differ from local time and 
+                //token may be invalid because earliest usage time is before issuing 
+                //DecodedJWT jwt = JWT.decode(token); 
                 return Optional.of(extractClaims(jwt));
             }
         } catch (Exception e) {
@@ -167,8 +170,7 @@ public class CognitoUserService implements IUserService {
                                            boolean isProfileOwner, UserRole profileRole) {
         UserAttributeKey attributeKey;
         try {
-            String attributeName = attribute.getName().toUpperCase().replaceAll("[-:]", "_");
-            attributeKey = UserAttributeKey.valueOf(attributeName);
+        	attributeKey = UserAttributeKey.fromString(attribute.getName());
         } catch (IllegalArgumentException e) {
             return false;
         }
