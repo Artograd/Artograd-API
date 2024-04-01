@@ -31,7 +31,7 @@ public class TenderService implements ITenderService {
     private TenderRepository tenderRepository;
 
     @Autowired
-    private IUserService cognitoService;
+    private IUserService userService;
 
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -166,7 +166,7 @@ public class TenderService implements ITenderService {
         tender.setModifiedAt(new Date());
         
         if (StringUtils.isNotBlank(tender.getOwnerId())) {
-            cognitoService.getUserByUsername(tender.getOwnerId())
+            userService.getUserByUsername(tender.getOwnerId())
                 .ifPresent(user -> {
                     tender.setOwnerName(formatUserName(user));
                     tender.setOwnerPicture(getUserAttributeValue(user, "picture"));

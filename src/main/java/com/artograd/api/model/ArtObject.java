@@ -14,6 +14,9 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ArtObject {
 	
+	@Schema(description = "The unique auto-generated identifier of the art object")
+	private String id;
+	
 	@Schema(description = "Art object title")
 	private String title;
 	
@@ -21,7 +24,10 @@ public class ArtObject {
 	private String description;
 	
 	@Schema(description = "Renderings of winner's idea")
-	private FileInfo files;
+	private List<FileInfo> files;
+	
+	@Schema(description = "Cover photo of art object")
+	private FileInfo cover;
 	
 	@Schema(description = "Reference to tender")
 	private Tender tender;
@@ -38,8 +44,14 @@ public class ArtObject {
 	@Schema(description = "Art object location")
 	private Location location;
 	
+	@Schema(description = "The ID of the leaf object in the location nested hierarcy.")
+	private String locationLeafId;
+	
 	@Schema(description = "Art object delivery date")
 	private Date deliveryDate;
+	
+	@Schema(description = "Art object creation date")
+    private Date createdAt;
 	
 	@Schema(description = "Art object owner")
 	private UserInfo owner;	
