@@ -2,17 +2,15 @@ package com.artograd.api.controllers;
 
 import com.artograd.api.model.Tender;
 import com.artograd.api.model.TenderSearchCriteria;
-import com.artograd.api.services.IUserService;
 import com.artograd.api.services.ITenderService;
-
+import com.artograd.api.services.IUserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/tenders")

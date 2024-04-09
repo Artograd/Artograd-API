@@ -12,16 +12,16 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class UserAttribute {
-	
-	private String name;
-	
-	private UserAttributeKey enumKey;
 
-	private String value;
-	
-	public UserAttribute(String name, String value) {
-		this.enumKey = UserAttributeKey.fromString(name);
-		this.name = name;
-		this.value = value;
-	}
+  private String name;
+
+  private UserAttributeKey enumKey;
+
+  private String value;
+
+  public UserAttribute(String name, String value) {
+    this.enumKey = UserAttributeKey.fromString(name);
+    this.name = name;
+    this.value = value;
+  }
 }

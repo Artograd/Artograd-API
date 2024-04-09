@@ -10,8 +10,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class UserInfo {
-	private String id;
-	private String name;
-	private String picture;
-	private String organization;
+  private String id;
+  private String name;
+  private String picture;
+  private String organization;
 }

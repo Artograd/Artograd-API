@@ -1,48 +1,46 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/java
 {
-    "name": "Java",
-    // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-    "image": "mcr.microsoft.com/devcontainers/java:1-21-bullseye",
-
-    "features": {
-        "ghcr.io/devcontainers/features/aws-cli:1": {
-            "version": "latest"
-        },
-        "ghcr.io/customink/codespaces-features/sam-cli:1": {
-            "version": "latest"
-        },
-        "ghcr.io/devcontainers-contrib/features/maven-sdkman:2": {
-            "version": "latest"
-        },        
-        "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  "name": "Java",
+  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+  "image": "mcr.microsoft.com/devcontainers/java:1-21-bullseye",
+  "features": {
+    "ghcr.io/devcontainers/features/aws-cli:1": {
+      "version": "latest"
     },
-    "customizations": {
-        "vscode": {
-            "extensions": [
-                "redhat.vscode-yaml",
-                "redhat.vscode-xml"
-            ]
-        }
+    "ghcr.io/customink/codespaces-features/sam-cli:1": {
+      "version": "latest"
     },
+    "ghcr.io/devcontainers-contrib/features/maven-sdkman:2": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "redhat.vscode-yaml",
+        "redhat.vscode-xml"
+      ]
+    }
+  },
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  //"forwardPorts": [],
 
-    // Use 'forwardPorts' to make a list of ports inside the container available locally.
-    //"forwardPorts": [],
+  // Use 'postCreateCommand' to run commands after the container is created.
+  // "postCreateCommand": "java -version",
 
-    // Use 'postCreateCommand' to run commands after the container is created.
-    // "postCreateCommand": "java -version",
+  // Configure tool-specific properties.
+  // "customizations": {},
 
-    // Configure tool-specific properties.
-    // "customizations": {},
-
-    // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-    // "remoteUser": "root"
-    // "runArgs": [
-    // 	"--userns=keep-id:uid=1000,gid=1000"
-    //    ],
-    // "containerUser": "vscode",
-    // "updateRemoteUserUID": true,
-    // "containerEnv": {
-    // 	"HOME": "/home/vscode"
-    // }
+  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+  // "remoteUser": "root"
+  // "runArgs": [
+  // 	"--userns=keep-id:uid=1000,gid=1000"
+  //    ],
+  // "containerUser": "vscode",
+  // "updateRemoteUserUID": true,
+  // "containerEnv": {
+  // 	"HOME": "/home/vscode"
+  // }
 }

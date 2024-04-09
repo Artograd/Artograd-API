@@ -13,9 +13,7 @@ import lombok.Setter;
 @Document(collection = "database_sequences")
 public class DatabaseSequence {
 
-    @Id
-    private String id;
+  @Id private String id;
 
-    private long seq;
-
+  private long seq;
 }

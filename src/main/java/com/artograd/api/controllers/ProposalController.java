@@ -2,10 +2,9 @@ package com.artograd.api.controllers;
 
 import com.artograd.api.model.Proposal;
 import com.artograd.api.model.system.UserTokenClaims;
-import com.artograd.api.services.IUserService;
 import com.artograd.api.services.IProposalService;
 import com.artograd.api.services.ITenderService;
-
+import com.artograd.api.services.IUserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;

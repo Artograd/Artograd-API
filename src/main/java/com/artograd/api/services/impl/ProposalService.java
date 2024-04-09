@@ -3,22 +3,19 @@ package com.artograd.api.services.impl;
 import com.artograd.api.model.Proposal;
 import com.artograd.api.model.User;
 import com.artograd.api.model.UserAttribute;
-import com.artograd.api.services.IUserService;
 import com.artograd.api.services.IProposalService;
 import com.artograd.api.services.ITenderService;
-
+import com.artograd.api.services.IUserService;
 import jakarta.servlet.http.HttpServletRequest;
-
-import org.apache.commons.lang3.StringUtils;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiConsumer;
+import org.apache.commons.lang3.StringUtils;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class ProposalService implements IProposalService {

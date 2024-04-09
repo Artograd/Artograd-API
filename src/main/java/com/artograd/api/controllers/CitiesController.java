@@ -14,15 +14,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/cities")
 public class CitiesController {
-	
-	@Autowired
-    private ICitiesService citiesService;
 
-	@SuppressWarnings("unchecked")
-	@GetMapping
-    public ResponseEntity<List<City>> getAllCities() {
-    	List<City> cities = citiesService.getAllCities();
-        return (ResponseEntity<List<City>>)CommonUtils.addCacheHeader(cities, 60);
-    }
+  @Autowired private ICitiesService citiesService;
+
+  @SuppressWarnings("unchecked")
+  @GetMapping
+  public ResponseEntity<List<City>> getAllCities() {
+    List<City> cities = citiesService.getAllCities();
+    return (ResponseEntity<List<City>>) CommonUtils.addCacheHeader(cities, 60);
+  }
 }
-

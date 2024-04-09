@@ -1,16 +1,14 @@
 package com.artograd.api.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import org.springframework.data.annotation.Id;
-
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.Id;
 
 @Schema
 @Getter

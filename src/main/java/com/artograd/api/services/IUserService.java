@@ -9,10 +9,17 @@ import java.util.List;
 import java.util.Optional;
 
 public interface IUserService {
-    boolean deleteUserByUsername(String userName);
-    boolean updateUserAttributes(String userName, List<UserAttribute> attributes);
-    Optional<User> getUserByUsername(String username);
-    Optional<UserTokenClaims> getUserTokenClaims(HttpServletRequest request);
-	List<UserAttribute> filterAttributes(List<UserAttribute> attributes, UserRole requesterRole, boolean isProfileOwner,
-			UserRole profileRole);
+  boolean deleteUserByUsername(String userName);
+
+  boolean updateUserAttributes(String userName, List<UserAttribute> attributes);
+
+  Optional<User> getUserByUsername(String username);
+
+  Optional<UserTokenClaims> getUserTokenClaims(HttpServletRequest request);
+
+  List<UserAttribute> filterAttributes(
+      List<UserAttribute> attributes,
+      UserRole requesterRole,
+      boolean isProfileOwner,
+      UserRole profileRole);
 }

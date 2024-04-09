@@ -4,12 +4,9 @@ import com.artograd.api.model.UserAttribute;
 import com.artograd.api.model.enums.UserRole;
 import com.artograd.api.model.system.UserTokenClaims;
 import com.artograd.api.services.IUserService;
-
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
-
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,15 +1,17 @@
 {
   "title": "Default Proposal Title",
   "description": "This is a default description for the proposal.",
-  "images": [{
-    "path": "https://example.com/image.jpg",
-    "snapPath": "https://example.com/snap-image.jpg",
-    "name": "image.jpg",
-    "size": 1024,
-    "id": 0,
-    "type": "image",
-    "extension": "jpg"
-  }],
+  "images": [
+    {
+      "path": "https://example.com/image.jpg",
+      "snapPath": "https://example.com/snap-image.jpg",
+      "name": "image.jpg",
+      "size": 1024,
+      "id": 0,
+      "type": "image",
+      "extension": "jpg"
+    }
+  ],
   "cover": {
     "path": "https://example.com/cover.jpg",
     "snapPath": "https://example.com/snap-cover.jpg",

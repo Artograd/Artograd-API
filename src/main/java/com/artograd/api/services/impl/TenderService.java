@@ -5,9 +5,12 @@ import com.artograd.api.model.TenderSearchCriteria;
 import com.artograd.api.model.User;
 import com.artograd.api.model.UserAttribute;
 import com.artograd.api.repositories.TenderRepository;
-import com.artograd.api.services.IUserService;
 import com.artograd.api.services.ITenderService;
-
+import com.artograd.api.services.IUserService;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -18,11 +21,6 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class TenderService implements ITenderService {

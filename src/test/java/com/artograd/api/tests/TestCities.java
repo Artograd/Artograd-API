@@ -25,59 +25,67 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 public class TestCities {
 
-    @Autowired
-    private MockMvc mockMvc;
-    
-    @Autowired
-    private ITestService testService;
+  @Autowired private MockMvc mockMvc;
 
-    /**
-     * Test that cities are returned with authorization token
-     * @throws Exception
-     */
-    @Test
-    public void testCitiesEndpointAsOfficial() throws Exception {
-        mockMvc.perform(get("/cities")
-            .header("Authorization", "Bearer " + testService.getTestUsers().getOfficalToken())
-            .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$", hasSize(greaterThan(0))));
-    }
-    
-    /**
-     * Test that cities are returned with authorization token
-     * @throws Exception
-     */
-    @Test
-    public void testCitiesEndpointAsCitizen() throws Exception {
-        mockMvc.perform(get("/cities")
-            .header("Authorization", "Bearer " + testService.getTestUsers().getCitizenToken())
-            .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$", hasSize(greaterThan(0))));
-    }
-    
-    /**
-     * Test that cities are returned without authorization token
-     * @throws Exception
-     */
-    @Test
-    public void testCitiesEndpointAsAnonymous() throws Exception {
-        mockMvc.perform(get("/cities")
-            .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$", hasSize(greaterThan(0))));
-    }
+  @Autowired private ITestService testService;
 
-    /**
-     * Test that cities are returned without authorization token
-     * @throws Exception
-     */
-    @Test
-    public void testCitiesEndpointAsBrokenToken() throws Exception {
-        mockMvc.perform(get("/cities")
-    		.header("Authorization", "Bearer null")
-            .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().is(HttpStatus.UNAUTHORIZED.value()));
-    }
+  /**
+   * Test that cities are returned with authorization token
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testCitiesEndpointAsOfficial() throws Exception {
+    mockMvc
+        .perform(
+            get("/cities")
+                .header("Authorization", "Bearer " + testService.getTestUsers().getOfficalToken())
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(greaterThan(0))));
+  }
+
+  /**
+   * Test that cities are returned with authorization token
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testCitiesEndpointAsCitizen() throws Exception {
+    mockMvc
+        .perform(
+            get("/cities")
+                .header("Authorization", "Bearer " + testService.getTestUsers().getCitizenToken())
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(greaterThan(0))));
+  }
+
+  /**
+   * Test that cities are returned without authorization token
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testCitiesEndpointAsAnonymous() throws Exception {
+    mockMvc
+        .perform(get("/cities").contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(greaterThan(0))));
+  }
+
+  /**
+   * Test that cities are returned without authorization token
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testCitiesEndpointAsBrokenToken() throws Exception {
+    mockMvc
+        .perform(
+            get("/cities")
+                .header("Authorization", "Bearer null")
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().is(HttpStatus.UNAUTHORIZED.value()));
+  }
 }

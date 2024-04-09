@@ -9,9 +9,9 @@ import lombok.Setter;
 @NoArgsConstructor
 public class TestUsers {
 
-	private String citizenToken;
-	
-	private String creatorToken;
-	
-	private String officalToken;
+  private String citizenToken;
+
+  private String creatorToken;
+
+  private String officalToken;
 }

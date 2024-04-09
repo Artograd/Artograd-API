@@ -14,23 +14,23 @@ import com.artograd.api.model.enums.UserRole;
 @Setter
 public class User {
 
-	private List<UserAttribute> attributes;
+  private List<UserAttribute> attributes;
 
-	public User(List<UserAttribute> attributes) {
-		this.attributes = attributes;
-	}
-	
-	public UserRole getRole() {
-		for (UserAttribute userAttribute : attributes) {
-			if (isCognitoGroupAttribute(userAttribute)) {
-				return UserRole.fromString(userAttribute.getValue()) ;
-			} 
-		}
-		return UserRole.ANONYMOUS_OR_CITIZEN;
-	}
+  public User(List<UserAttribute> attributes) {
+    this.attributes = attributes;
+  }
 
-	private boolean isCognitoGroupAttribute(UserAttribute userAttribute) {
-		return userAttribute.getEnumKey() != null && userAttribute.getEnumKey().equals(UserAttributeKey.COGNITO_GROUPS);
-	}
+  public UserRole getRole() {
+    for (UserAttribute userAttribute : attributes) {
+      if (isCognitoGroupAttribute(userAttribute)) {
+        return UserRole.fromString(userAttribute.getValue());
+      }
+    }
+    return UserRole.ANONYMOUS_OR_CITIZEN;
+  }
 
+  private boolean isCognitoGroupAttribute(UserAttribute userAttribute) {
+    return userAttribute.getEnumKey() != null
+        && userAttribute.getEnumKey().equals(UserAttributeKey.COGNITO_GROUPS);
+  }
 }
