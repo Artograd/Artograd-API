@@ -1,5 +1,13 @@
 package com.artograd.api.tests;
 
+// import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.artograd.api.taf.ITestService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -11,31 +19,19 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.artograd.api.taf.ITestService;
-
-import static org.hamcrest.Matchers.*;
-
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestInstance(Lifecycle.PER_CLASS)
 @ActiveProfiles("test")
-public class TestCities {
+class TestCities {
 
   @Autowired private MockMvc mockMvc;
 
   @Autowired private ITestService testService;
 
-  /**
-   * Test that cities are returned with authorization token
-   *
-   * @throws Exception
-   */
+  /** Test that cities are returned with authorization token. */
   @Test
-  public void testCitiesEndpointAsOfficial() throws Exception {
+  void testCitiesEndpointAsOfficial() throws Exception {
     mockMvc
         .perform(
             get("/cities")
@@ -45,13 +41,9 @@ public class TestCities {
         .andExpect(jsonPath("$", hasSize(greaterThan(0))));
   }
 
-  /**
-   * Test that cities are returned with authorization token
-   *
-   * @throws Exception
-   */
+  /** Test that cities are returned with authorization token. */
   @Test
-  public void testCitiesEndpointAsCitizen() throws Exception {
+  void testCitiesEndpointAsCitizen() throws Exception {
     mockMvc
         .perform(
             get("/cities")
@@ -61,26 +53,18 @@ public class TestCities {
         .andExpect(jsonPath("$", hasSize(greaterThan(0))));
   }
 
-  /**
-   * Test that cities are returned without authorization token
-   *
-   * @throws Exception
-   */
+  /** Test that cities are returned without authorization token. */
   @Test
-  public void testCitiesEndpointAsAnonymous() throws Exception {
+  void testCitiesEndpointAsAnonymous() throws Exception {
     mockMvc
         .perform(get("/cities").contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(greaterThan(0))));
   }
 
-  /**
-   * Test that cities are returned without authorization token
-   *
-   * @throws Exception
-   */
+  /** Test that cities are returned without authorization token. */
   @Test
-  public void testCitiesEndpointAsBrokenToken() throws Exception {
+  void testCitiesEndpointAsBrokenToken() throws Exception {
     mockMvc
         .perform(
             get("/cities")

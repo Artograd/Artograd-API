@@ -1,7 +1,6 @@
 package com.artograd.api.model;
 
 import com.artograd.api.model.enums.UserAttributeKey;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,6 +18,9 @@ public class UserAttribute {
 
   private String value;
 
+  /**
+   * Represents a user attribute with a name and a value.
+   */
   public UserAttribute(String name, String value) {
     this.enumKey = UserAttributeKey.fromString(name);
     this.name = name;

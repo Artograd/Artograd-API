@@ -1,10 +1,9 @@
 package com.artograd.api.services;
 
-import java.util.List;
-import java.util.Optional;
-
 import com.artograd.api.model.ArtObject;
 import com.artograd.api.model.ArtObjectSearchCriteria;
+import java.util.List;
+import java.util.Optional;
 
 public interface IArtObjectService {
 

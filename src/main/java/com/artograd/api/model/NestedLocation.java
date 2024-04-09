@@ -1,6 +1,7 @@
 package com.artograd.api.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,6 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class NestedLocation {
 
   @Schema(description = "Id of location entity")
@@ -19,10 +21,4 @@ public class NestedLocation {
 
   @Schema(description = "nested child")
   private NestedLocation child;
-
-  public NestedLocation(String id, String name, NestedLocation child) {
-    this.id = id;
-    this.name = name;
-    this.child = child;
-  }
 }

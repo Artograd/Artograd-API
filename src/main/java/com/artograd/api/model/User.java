@@ -1,13 +1,11 @@
 package com.artograd.api.model;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Getter;
-import lombok.Setter;
-
-import java.util.List;
-
 import com.artograd.api.model.enums.UserAttributeKey;
 import com.artograd.api.model.enums.UserRole;
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
 @Schema
 @Getter
@@ -20,6 +18,13 @@ public class User {
     this.attributes = attributes;
   }
 
+  /**
+   * Retrieves the role of the user. It searches for the user attribute that represents
+   * the cognito group and returns the corresponding UserRole value. If no cognito group
+   * attribute is found, it returns the default role ANONYMOUS_OR_CITIZEN.
+   *
+   * @return the UserRole value representing the role of the user
+   */
   public UserRole getRole() {
     for (UserAttribute userAttribute : attributes) {
       if (isCognitoGroupAttribute(userAttribute)) {

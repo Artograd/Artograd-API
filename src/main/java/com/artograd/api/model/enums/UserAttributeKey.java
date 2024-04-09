@@ -35,6 +35,13 @@ public enum UserAttributeKey {
     this.attributeKey = attributeKey;
   }
 
+  /**
+   * Converts a string representation of a UserAttributeKey to its corresponding enum value.
+   *
+   * @param text the string representation of the UserAttributeKey
+   * @return the enum value of the UserAttributeKey, or throws an IllegalArgumentException if
+   *         the string does not match any UserAttributeKey
+   */
   public static UserAttributeKey fromString(String text) {
     for (UserAttributeKey uak : UserAttributeKey.values()) {
       if (uak.attributeKey.equalsIgnoreCase(text)) {

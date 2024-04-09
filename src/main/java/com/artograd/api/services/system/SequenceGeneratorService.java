@@ -1,6 +1,7 @@
 package com.artograd.api.services.system;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.artograd.api.model.system.DatabaseSequence;
+import lombok.AllArgsConstructor;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -8,13 +9,18 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
-import com.artograd.api.model.system.DatabaseSequence;
-
 @Service
+@AllArgsConstructor
 public class SequenceGeneratorService {
 
-  @Autowired private MongoOperations mongoOperations;
+  private MongoOperations mongoOperations;
 
+  /**
+   * Generates a sequence number based on the given sequence name.
+   *
+   * @param seqName the name of the sequence
+   * @return the generated sequence number
+   */
   public String generateSequence(String seqName) {
     DatabaseSequence counter =
         mongoOperations.findAndModify(
