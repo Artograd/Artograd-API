@@ -1,6 +1,7 @@
 package com.artograd.api.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,15 +10,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class UserAttribute {
 
   private String name;
-
   private String value;
-
-  public UserAttribute(String name, String value) {
-    super();
-    this.name = name;
-    this.value = value;
-  }
 }

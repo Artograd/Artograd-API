@@ -1,8 +1,15 @@
 package com.artograd.api.tests;
 
-import static org.hamcrest.Matchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.artograd.api.taf.ITestService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -27,7 +34,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @TestInstance(Lifecycle.PER_CLASS)
 @ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class TestTenderAndProposal {
+class TestTenderAndProposal {
 
   @Autowired private MockMvc mockMvc;
 
@@ -38,7 +45,7 @@ public class TestTenderAndProposal {
 
   @Test
   @Order(1)
-  public void nonOfficialCreatesTender_Forbidden() throws Exception {
+  void nonOfficialCreatesTender_Forbidden() throws Exception {
     mockMvc
         .perform(
             post("/tenders")
@@ -50,7 +57,7 @@ public class TestTenderAndProposal {
 
   @Test
   @Order(2)
-  public void officialCreatesTender_Success() throws Exception {
+  void officialCreatesTender_Success() throws Exception {
     mockMvc
         .perform(
             post("/tenders")
@@ -65,7 +72,7 @@ public class TestTenderAndProposal {
 
   @Test
   @Order(3)
-  public void searchTenderByTitle_Success() throws Exception {
+  void searchTenderByTitle_Success() throws Exception {
     String searchTitle = "New Art Installation";
 
     mockMvc
@@ -78,7 +85,7 @@ public class TestTenderAndProposal {
 
   @Test
   @Order(4)
-  public void officerUpdatesTender_Success() throws Exception {
+  void officerUpdatesTender_Success() throws Exception {
     String tenderJson = testService.getDefaultTenderJson();
     ObjectMapper mapper = new ObjectMapper();
     JsonNode root = mapper.readTree(tenderJson);
@@ -99,7 +106,7 @@ public class TestTenderAndProposal {
 
   @Test
   @Order(5)
-  public void officerCreatesProposalForTender_Forbidden() throws Exception {
+  void officerCreatesProposalForTender_Forbidden() throws Exception {
     mockMvc
         .perform(
             post("/tenders/" + tenderId + "/proposals")
@@ -111,7 +118,7 @@ public class TestTenderAndProposal {
 
   @Test
   @Order(6)
-  public void creatorCreatesProposalForTender_Success() throws Exception {
+  void creatorCreatesProposalForTender_Success() throws Exception {
     mockMvc
         .perform(
             post("/tenders/" + tenderId + "/proposals")
@@ -126,7 +133,7 @@ public class TestTenderAndProposal {
 
   @Test
   @Order(7)
-  public void creatorUpdatesProposal_Success() throws Exception {
+  void creatorUpdatesProposal_Success() throws Exception {
     String proposalJson = testService.getDefaultProposalJson();
     ObjectMapper mapper = new ObjectMapper();
     JsonNode root = mapper.readTree(proposalJson);
@@ -147,7 +154,7 @@ public class TestTenderAndProposal {
 
   @Test
   @Order(8)
-  public void officialDeletesProposal_Forbidden() throws Exception {
+  void officialDeletesProposal_Forbidden() throws Exception {
     mockMvc
         .perform(
             delete("/tenders/" + tenderId + "/proposals/" + proposalId)
@@ -157,7 +164,7 @@ public class TestTenderAndProposal {
 
   @Test
   @Order(9)
-  public void creatorDeletesProposal_Success() throws Exception {
+  void creatorDeletesProposal_Success() throws Exception {
     mockMvc
         .perform(
             delete("/tenders/" + tenderId + "/proposals/" + proposalId)
@@ -167,7 +174,7 @@ public class TestTenderAndProposal {
 
   @Test
   @Order(10)
-  public void creatorDeletesProposalAgain_Forbidden() throws Exception {
+  void creatorDeletesProposalAgain_Forbidden() throws Exception {
     mockMvc
         .perform(
             delete("/tenders/" + tenderId + "/proposals/" + proposalId)
@@ -177,7 +184,7 @@ public class TestTenderAndProposal {
 
   @Test
   @Order(11)
-  public void creatorDeletesTender_Forbidden() throws Exception {
+  void creatorDeletesTender_Forbidden() throws Exception {
     mockMvc
         .perform(
             delete("/tenders/" + tenderId)
@@ -187,7 +194,7 @@ public class TestTenderAndProposal {
 
   @Test
   @Order(12)
-  public void officerDeletesTender_Success() throws Exception {
+  void officerDeletesTender_Success() throws Exception {
     mockMvc
         .perform(
             delete("/tenders/" + tenderId)

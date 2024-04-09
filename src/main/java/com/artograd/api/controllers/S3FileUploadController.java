@@ -42,6 +42,16 @@ public class S3FileUploadController {
   private final S3Client s3Client =
       S3Client.builder().credentialsProvider(DefaultCredentialsProvider.create()).build();
 
+  /**
+   * Uploads a file to the specified tender folder and subfolder.
+   *
+   * @param tenderFolder The folder where the file should be uploaded.
+   * @param subFolder The subfolder where the file should be uploaded.
+   * @param file The file to be uploaded.
+   * @param request The HttpServletRequest.
+   * @return ResponseEntity containing the file information if the upload is successful,
+   *     or an error response if there is an issue with the upload.
+   */
   @PostMapping("/uploadFile/{tenderFolder}/{subFolder}")
   @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<?> uploadFile(

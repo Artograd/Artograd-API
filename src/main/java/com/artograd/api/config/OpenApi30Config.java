@@ -10,8 +10,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenApi30Config {
 
+  /**
+   * Returns a custom OpenAPI object with security configurations.
+   *
+   * @return a custom OpenAPI object with security configurations
+   */
   @Bean
-  public OpenAPI customOpenAPI() {
+  public OpenAPI customOpenApi() {
     return new OpenAPI()
         .components(
             new Components()

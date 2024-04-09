@@ -81,10 +81,10 @@ public class TenderService implements ITenderService {
   }
 
   /**
-   * Searches for tenders based on various criteria.
+   * Searches for tenders based on the given criteria.
    *
-   * @param sortOrder The TenderSearchCriteria
-   * @return A list of tenders that match the criteria.
+   * @param criteria The criteria for the search.
+   * @return A list of tenders that match the search criteria.
    */
   @Override
   public List<Tender> searchTenders(TenderSearchCriteria criteria) {

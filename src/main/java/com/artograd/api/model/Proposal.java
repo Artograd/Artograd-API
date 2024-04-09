@@ -35,7 +35,8 @@ public class Proposal {
 
   @Schema(
       description =
-          "Estimated amount of money required for implementation of proposal. Should be seen to tender owner only.")
+          "Estimated amount of money required for implementation of proposal. Should be seen to "
+              + "tender owner only.")
   private double estimatedCost;
 
   @Schema(description = "The username attribute of a user")

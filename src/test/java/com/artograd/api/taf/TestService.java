@@ -32,6 +32,9 @@ public class TestService implements ITestService {
 
   private final TestUsers testUsers = new TestUsers();
 
+  /**
+   * Initializes the TestService by setting the tokens for the test users.
+   */
   @PostConstruct
   public void init() {
     testUsers.setOfficalToken(
@@ -46,6 +49,14 @@ public class TestService implements ITestService {
     return testUsers;
   }
 
+  /**
+   * Retrieves the ID token for a user by providing their username and password.
+   *
+   * @param username The username of the user.
+   * @param password The password of the user.
+   * @return The ID token of the user.
+   * @throws RuntimeException if authentication fails.
+   */
   public String getIdToken(String username, String password) {
     Map<String, String> authParameters = new HashMap<>();
     authParameters.put("USERNAME", username);

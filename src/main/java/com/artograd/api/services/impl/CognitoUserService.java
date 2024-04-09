@@ -23,7 +23,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminDeleteUserRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminGetUserRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminGetUserResponse;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 
 @Service
 public class CognitoUserService implements IUserService {
@@ -100,7 +104,7 @@ public class CognitoUserService implements IUserService {
     try {
       String cognitoIssuer = getCognitoIssuer(userPoolId);
       JwkProvider provider = new JwkProviderBuilder(cognitoIssuer).build();
-      Algorithm algorithm = Algorithm.RSA256(new CognitoRSAKeyProvider(provider));
+      Algorithm algorithm = Algorithm.RSA256(new CognitoRsaKeyProvider(provider));
 
       JWTVerifier verifier = JWT.require(algorithm).withIssuer(cognitoIssuer).build();
 
@@ -140,11 +144,11 @@ public class CognitoUserService implements IUserService {
     return false;
   }
 
-  private static class CognitoRSAKeyProvider implements RSAKeyProvider {
+  private static class CognitoRsaKeyProvider implements RSAKeyProvider {
 
     private final JwkProvider jwkProvider;
 
-    public CognitoRSAKeyProvider(JwkProvider jwkProvider) {
+    public CognitoRsaKeyProvider(JwkProvider jwkProvider) {
       this.jwkProvider = jwkProvider;
     }
 
