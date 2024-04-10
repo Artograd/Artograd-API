@@ -10,11 +10,10 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class GeoPosition {
-	
-	@Schema(description = "Latitude of the potential art object")
-    private double latitude;
-	
-	@Schema(description = "Longitude of the potential art object")
-    private double longitude;
 
+  @Schema(description = "Latitude of the potential art object")
+  private double latitude;
+
+  @Schema(description = "Longitude of the potential art object")
+  private double longitude;
 }

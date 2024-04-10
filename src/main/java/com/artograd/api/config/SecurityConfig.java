@@ -12,15 +12,22 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .authorizeHttpRequests(requests -> requests
-                		.anyRequest().permitAll())
-                .oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer.jwt(Customizer.withDefaults()))
-                .csrf(Customizer.withDefaults())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+  /**
+   * Returns a SecurityFilterChain object based on the provided HttpSecurity configuration.
+   *
+   * @param http The HttpSecurity object used for configuring security.
+   * @return A SecurityFilterChain object.
+   * @throws Exception if an error occurs during the configuration process.
+   */
+  @Bean
+  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http.authorizeHttpRequests(requests -> requests.anyRequest().permitAll())
+        .oauth2ResourceServer(
+            oauth2ResourceServer -> oauth2ResourceServer.jwt(Customizer.withDefaults()))
+        .csrf(Customizer.withDefaults())
+        .sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        return http.build();
-    }
+    return http.build();
+  }
 }
