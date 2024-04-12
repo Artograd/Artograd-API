@@ -7,18 +7,14 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
-	
-	@Value("${artograd.env:cloud}")
-    private String env;
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-    	if ( env != null && env.equals("local") ) {
-    		registry.addMapping("/**")
-	    		.allowedOrigins("*")
-	    		.allowedMethods("*")
-	            .allowedHeaders("*");
-    	}
-        
+  @Value("${artograd.env:cloud}")
+  private String env;
+
+  @Override
+  public void addCorsMappings(CorsRegistry registry) {
+    if (env != null && env.equals("local")) {
+      registry.addMapping("/**").allowedOrigins("*").allowedMethods("*").allowedHeaders("*");
     }
+  }
 }

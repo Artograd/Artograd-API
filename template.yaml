@@ -11,7 +11,7 @@ Resources:
   ArogradAPI:
     Type: AWS::Serverless::Function
     Properties:
-#      AutoPublishAlias: bcn
+      #      AutoPublishAlias: bcn
       FunctionName: artograd-api-boot-3
       Handler: com.artograd.api.StreamLambdaHandler::handleRequest
       Runtime: java21

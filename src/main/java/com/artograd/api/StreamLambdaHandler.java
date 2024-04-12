@@ -9,20 +9,21 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 
 public class StreamLambdaHandler implements RequestHandler<AwsProxyRequest, AwsProxyResponse> {
 
-	private static SpringBootLambdaContainerHandler<AwsProxyRequest, AwsProxyResponse> handler;
+  private static SpringBootLambdaContainerHandler<AwsProxyRequest, AwsProxyResponse> handler;
 
-	static {
-        try {
-            handler = SpringBootLambdaContainerHandler.getAwsProxyHandler(Application.class); }
-        catch (ContainerInitializationException ex){
-            throw new RuntimeException("Unable to load spring boot application",ex); }
+  static {
+    try {
+      handler = SpringBootLambdaContainerHandler.getAwsProxyHandler(Application.class);
+    } catch (ContainerInitializationException ex) {
+      throw new RuntimeException("Unable to load spring boot application", ex);
     }
-    
-    @Override
-    public AwsProxyResponse handleRequest(AwsProxyRequest awsProxyRequest, Context context) {
-        AwsProxyResponse response = handler.proxy(awsProxyRequest, context);
-        response.addHeader("Access-Control-Allow-Origin", "*");
-        response.addHeader("Access-Control-Allow-Credentials", "true");
-        return response;
-    }
+  }
+
+  @Override
+  public AwsProxyResponse handleRequest(AwsProxyRequest awsProxyRequest, Context context) {
+    AwsProxyResponse response = handler.proxy(awsProxyRequest, context);
+    response.addHeader("Access-Control-Allow-Origin", "*");
+    response.addHeader("Access-Control-Allow-Credentials", "true");
+    return response;
+  }
 }

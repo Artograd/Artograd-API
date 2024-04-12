@@ -1,11 +1,10 @@
 package com.artograd.api.model.system;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 @Getter
 @Setter
@@ -13,9 +12,7 @@ import lombok.Setter;
 @Document(collection = "database_sequences")
 public class DatabaseSequence {
 
-    @Id
-    private String id;
+  @Id private String id;
 
-    private long seq;
-
+  private long seq;
 }
