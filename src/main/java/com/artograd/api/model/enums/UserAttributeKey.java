@@ -27,6 +27,7 @@ public enum UserAttributeKey {
   BANK_SWIFT("custom:bank_swift"),
   BANK_USE_DEFAULT("custom:bank_use_default"),
   PHONE_NUMBER("phone_number"),
+  PHONE_NUMBER_VERIFIED("phone_number_verified"),
   SUB("sub");
 
   private final String attributeKey;
