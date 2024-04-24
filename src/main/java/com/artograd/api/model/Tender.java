@@ -37,13 +37,13 @@ public class Tender {
   @Schema(description = "The location info of the tender")
   private Location location;
 
-  @Schema(description = "The ID of the leaf object in the location nested hierarcy.")
+  @Schema(description = "The ID of the leaf object in the location nested hierarchy.")
   private String locationLeafId;
 
   @Schema(description = "The user email of the official who created the tender")
   private String ownerEmail;
 
-  @Schema(description = "Wheather email should be sent in the object as response")
+  @Schema(description = "Whether email should be sent in the object as response")
   private boolean showEmail;
 
   @Schema(description = "links to files of the supported documents")

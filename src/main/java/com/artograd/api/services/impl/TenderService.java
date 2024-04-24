@@ -4,6 +4,7 @@ import com.artograd.api.model.Tender;
 import com.artograd.api.model.TenderSearchCriteria;
 import com.artograd.api.model.User;
 import com.artograd.api.model.UserAttribute;
+import com.artograd.api.model.enums.TenderStatus;
 import com.artograd.api.repositories.TenderRepository;
 import com.artograd.api.services.ITenderService;
 import com.artograd.api.services.IUserService;
@@ -64,6 +65,7 @@ public class TenderService implements ITenderService {
    */
   @Override
   public Optional<Tender> updateTender(Tender tender) {
+    // TODO: Replace to modifiedAt
     tender.setCreatedAt(getTender(tender.getId()).get().getCreatedAt());
     enrichTenderWithOwnerDataAndTimestamps(tender);
     Tender savedTender = tenderRepository.save(tender);
@@ -81,10 +83,10 @@ public class TenderService implements ITenderService {
   }
 
   /**
-   * Searches for tenders based on the given criteria.
+   * Searches for tenders based on the provided criteria.
    *
-   * @param criteria The criteria to filter the tenders.
-   * @return A list of tenders that match the criteria.
+   * @param criteria The criteria used to search for tenders.
+   * @return A list of tenders that match the search criteria.
    */
   @Override
   public List<Tender> searchTenders(TenderSearchCriteria criteria) {
@@ -95,7 +97,14 @@ public class TenderService implements ITenderService {
             criteria.getSize(),
             Sort.by(Sort.Direction.fromString(criteria.getSortOrder()), criteria.getSortBy()));
     query.with(pageable);
-    return mongoTemplate.find(query, Tender.class);
+    List<Tender> tenders = mongoTemplate.find(query, Tender.class);
+    return tenders.stream()
+        .filter(
+            t ->
+                !isTenderStatusDraftOrCancelledOrDeleted(t)
+                    || (isTenderStatusDraftOrCancelledOrDeleted(t)
+                        && t.getOwnerId().equals(criteria.getOwnerId())))
+        .toList();
   }
 
   /**
@@ -183,5 +192,11 @@ public class TenderService implements ITenderService {
         .findFirst()
         .map(UserAttribute::getValue)
         .orElse("");
+  }
+
+  private boolean isTenderStatusDraftOrCancelledOrDeleted(Tender tender) {
+    return tender.getStatus().equals(TenderStatus.DRAFT.toString())
+        || tender.getStatus().equals(TenderStatus.CANCELLED.toString())
+        || tender.getStatus().equals(TenderStatus.DELETED.toString());
   }
 }
