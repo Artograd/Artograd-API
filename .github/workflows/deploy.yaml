@@ -37,7 +37,7 @@ jobs:
       - name: Upload artefact on GitHub
         uses: actions/upload-artifact@v4
         with:
-          name: api-0.0.1-SNAPSHOT-shaded.jar
+          name: api-0.0.1-SNAPSHOT-shaded.zip
           path: ./target/
 
   upload-to-s3:
@@ -51,11 +51,11 @@ jobs:
       - name: Download artefact from GitHub
         uses: actions/download-artifact@v4
         with:
-          name: api-0.0.1-SNAPSHOT-shaded.jar
+          name: api-0.0.1-SNAPSHOT-shaded.zip
       - name: Upload to S3
         uses: jakejarvis/s3-sync-action@master
         with:
-          args: --follow-symlinks --exclude '*' --exclude '.mvn/*' --include 'api-0.0.1-SNAPSHOT-shaded.jar'
+          args: --follow-symlinks --exclude '*' --exclude '.mvn/*' --include 'api-0.0.1-SNAPSHOT-shaded.zip'
         env:
           AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -94,9 +94,9 @@ jobs:
           template: cloudformation/lambda.yaml
           parameter-overrides: >
             DeploymentBucket=${{ secrets.AWS_S3_BUCKET }},
-            DeploymentKey=api-0.0.1-SNAPSHOT-shaded.jar,
+            DeploymentKey=api-0.0.1-SNAPSHOT-shaded.zip,
             FunctionName=artograd-boot-api-boot-4,
-            AwsCognitoUserPoolUriKey="https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_YQqYTKSA2"
+            AwsCognitoUserPoolUriKey=${{ secrets.AWS_COGNITO_USER_POOL_URI }}
           role-arn: arn:aws:iam::${{ steps.creds.outputs.aws-account-id }}:role/github-actions-cloudformation-stack-role
           no-fail-on-empty-changeset: "1"
 
