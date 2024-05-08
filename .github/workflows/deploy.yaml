@@ -94,8 +94,8 @@ jobs:
           template: cloudformation/lambda.yaml
           parameter-overrides: >
             DeploymentBucket=${{ secrets.AWS_S3_BUCKET }}
-            DeploymentKey=api-0.0.1-SNAPSHOT-shaded.jar
-            FunctionName=artograd-boot-api-boot-4
+            DeploymentKey="api-0.0.1-SNAPSHOT-shaded.jar"
+            FunctionName="artograd-boot-api-boot-4"
             AwsCognitoUserPoolUriKey="https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_YQqYTKSA2"
           role-arn: arn:aws:iam::${{ steps.creds.outputs.aws-account-id }}:role/github-actions-cloudformation-stack-role
           no-fail-on-empty-changeset: "1"
