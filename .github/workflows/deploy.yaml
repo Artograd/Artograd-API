@@ -4,6 +4,7 @@ on:
       - '*'
   pull_request:
     branches:
+      - deploy-fix
       - dev
       - master
 
@@ -42,10 +43,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: tests3
+        run: aws s3 ls
       - name: Upload to S3
         uses: jakejarvis/s3-sync-action@master
         with:
-          args: --follow-symlinks --delete --exclude '*' --include 'target/*.zip'
+          args: --follow-symlinks --exclude '*' --include 'target/*.zip'
         env:
           AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
