@@ -44,7 +44,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: tests3
-        run: ls -la
+        run: aws --version
         env:
           AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
