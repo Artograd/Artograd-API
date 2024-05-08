@@ -67,7 +67,7 @@ jobs:
     name: Deploy lambda function
     runs-on: ubuntu-22.04
     needs: upload-to-s3
-    if: (github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'))
+    if: (github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'|| github.ref == 'refs/heads/deploy-fix'))
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -92,6 +92,11 @@ jobs:
         with:
           name: ${{ steps.env-name.outputs.environment }}-lambda
           template: cloudformation/lambda.yaml
+          parameter-overrides: >
+            DeploymentBucket=${{ secrets.AWS_S3_BUCKET }}
+            DeploymentKey=api-0.0.1-SNAPSHOT-shaded.jar
+            FunctionName=artograd-boot-api-boot-4
+            AwsCognitoUserPoolUriKey="https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_YQqYTKSA2"
           role-arn: arn:aws:iam::${{ steps.creds.outputs.aws-account-id }}:role/github-actions-cloudformation-stack-role
           no-fail-on-empty-changeset: "1"
 
@@ -99,7 +104,7 @@ jobs:
     name: Deploy API for lambda
     runs-on: ubuntu-22.04
     needs: deploy-lambda
-    if: (github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'))
+    if: (github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'|| github.ref == 'refs/heads/deploy-fix'))
     steps:
       - name: Checkout
         uses: actions/checkout@v2
