@@ -27,15 +27,15 @@ jobs:
         env:
           AWS_COGNITO_USER_POOL_URI: ${{ secrets.AWS_COGNITO_USER_POOL_URI }}
           AWS_COGNITO_CLIENT_ID: ${{ secrets.AWS_COGNITO_CLIENT_ID}}
-          ARTOGRAD_MONGO_DB_CONNECTTION: ${{ secrets.ARTOGRAD_MONGO_DB_CONNECTTION }}
+          ARTOGRAD_MONGO_DB_CONNECTION: ${{ secrets.ARTOGRAD_MONGO_DB_CONNECTTION }}
           CLOUDFRONT_DISTRIBUTION_DOMAIN: ${{ secrets.CLOUDFRONT_DISTRIBUTION_DOMAIN }}
           AWS_COGNITO_USER_POOL_ID: ${{ secrets.AWS_COGNITO_USER_POOL_ID }}
           ARTOGRAD_API_ENV: ${{ secrets.ARTOGRAD_API_ENV }}
           ARTOGRAD_USER_OFFICIAL: ${{ secrets.ARTOGRAD_USER_OFFICIAL }}
           ARTOGRAD_USER_CREATOR: ${{ secrets.ARTOGRAD_USER_CREATOR }}
           ARTOGRAD_USER_CITIZEN: ${{ secrets.ARTOGRAD_USER_CITIZEN }}
-      - name: Archive code compilation
-        uses: actions/upload-artifact@v2
+      - name: Upload artefact on GitHub
+        uses: actions/upload-artifact@v4
         with:
           name: api-0.0.1-SNAPSHOT-shaded.jar
           path: ./target/
@@ -48,16 +48,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Download compiled code
-        uses: actions/download-artifact@v2
+      - name: Download artefact from GitHub
+        uses: actions/download-artifact@v4
         with:
           name: api-0.0.1-SNAPSHOT-shaded.jar
       - name: Upload to S3
         uses: jakejarvis/s3-sync-action@master
         with:
-          args: --follow-symlinks --delete --exclude '*' --exclude '.mvn/*' --include 'api-0.0.1-SNAPSHOT-shaded.jar'
+          args: --follow-symlinks --exclude '*' --exclude '.mvn/*' --include 'api-0.0.1-SNAPSHOT-shaded.jar'
         env:
-          AWS_S3_BUCKET: ${{ env.AWS_S3_BUCKET }}
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: eu-central-1
