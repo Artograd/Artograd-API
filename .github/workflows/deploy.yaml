@@ -11,144 +11,144 @@ on:
 name: Deploy
 jobs:
   build:
-    name: Build application
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Set up JDK
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'adopt'
-          java-version: '21'
-      - name: Build SpringBoot JAR
-        run: |
-          mvn clean install -DskipTests
-        env:
-          AWS_COGNITO_USER_POOL_URI: ${{ secrets.AWS_COGNITO_USER_POOL_URI }}
-          AWS_COGNITO_CLIENT_ID: ${{ secrets.AWS_COGNITO_CLIENT_ID}}
-          ARTOGRAD_MONGO_DB_CONNECTION: ${{ secrets.ARTOGRAD_MONGO_DB_CONNECTTION }}
-          CLOUDFRONT_DISTRIBUTION_DOMAIN: ${{ secrets.CLOUDFRONT_DISTRIBUTION_DOMAIN }}
-          AWS_COGNITO_USER_POOL_ID: ${{ secrets.AWS_COGNITO_USER_POOL_ID }}
-          ARTOGRAD_API_ENV: ${{ secrets.ARTOGRAD_API_ENV }}
-          ARTOGRAD_USER_OFFICIAL: ${{ secrets.ARTOGRAD_USER_OFFICIAL }}
-          ARTOGRAD_USER_CREATOR: ${{ secrets.ARTOGRAD_USER_CREATOR }}
-          ARTOGRAD_USER_CITIZEN: ${{ secrets.ARTOGRAD_USER_CITIZEN }}
-      - name: Archive build artifacts
-        run: |
-          zip -r packaged.zip target/
-      - name: Upload artefact on GitHub
-        uses: actions/upload-artifact@v4
-        with:
-          name: packaged.zip
-          path: ./packaged.zip
-      - name: Just ls
-        run: |
-          ls -la
+#    name: Build application
+#    runs-on: ubuntu-22.04
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v2
+#      - name: Set up JDK
+#        uses: actions/setup-java@v2
+#        with:
+#          distribution: 'adopt'
+#          java-version: '21'
+#      - name: Build SpringBoot JAR
+#        run: |
+#          mvn clean install -DskipTests
+#        env:
+#          AWS_COGNITO_USER_POOL_URI: ${{ secrets.AWS_COGNITO_USER_POOL_URI }}
+#          AWS_COGNITO_CLIENT_ID: ${{ secrets.AWS_COGNITO_CLIENT_ID}}
+#          ARTOGRAD_MONGO_DB_CONNECTION: ${{ secrets.ARTOGRAD_MONGO_DB_CONNECTTION }}
+#          CLOUDFRONT_DISTRIBUTION_DOMAIN: ${{ secrets.CLOUDFRONT_DISTRIBUTION_DOMAIN }}
+#          AWS_COGNITO_USER_POOL_ID: ${{ secrets.AWS_COGNITO_USER_POOL_ID }}
+#          ARTOGRAD_API_ENV: ${{ secrets.ARTOGRAD_API_ENV }}
+#          ARTOGRAD_USER_OFFICIAL: ${{ secrets.ARTOGRAD_USER_OFFICIAL }}
+#          ARTOGRAD_USER_CREATOR: ${{ secrets.ARTOGRAD_USER_CREATOR }}
+#          ARTOGRAD_USER_CITIZEN: ${{ secrets.ARTOGRAD_USER_CITIZEN }}
+#      - name: Archive build artifacts
+#        run: |
+#          zip -r packaged.zip target/
+#      - name: Upload artefact on GitHub
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: packaged.zip
+#          path: ./packaged.zip
+#      - name: Just ls
+#        run: |
+#          ls -la
+#
+#  upload-to-s3:
+#    name: Upload to S3
+#    runs-on: ubuntu-22.04
+#    needs: build
+#    if: (github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'|| github.ref == 'refs/heads/deploy-fix'))
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v2
+#      - name: Download artefact from GitHub
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: packaged.zip
+#      - name: Upload to S3
+#        uses: jakejarvis/s3-sync-action@master
+#        with:
+#          args: --follow-symlinks --exclude '*' --exclude '.mvn/*' --include 'packaged.zip'
+#        env:
+#          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+#          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#          AWS_REGION: eu-central-1
+#        if: success()
 
-  upload-to-s3:
-    name: Upload to S3
+  deploy-lambda:
+    name: Deploy lambda function
     runs-on: ubuntu-22.04
-    needs: build
+    needs: upload-to-s3
     if: (github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'|| github.ref == 'refs/heads/deploy-fix'))
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Download artefact from GitHub
-        uses: actions/download-artifact@v4
-        with:
-          name: packaged.zip
-      - name: Upload to S3
-        uses: jakejarvis/s3-sync-action@master
-        with:
-          args: --follow-symlinks --exclude '*' --exclude '.mvn/*' --include 'packaged.zip'
+      - name: Configure environment name
+        id: env-name
         env:
-          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+          REPO: ${{ github.repository }}
+        run: |
+          ENVIRONMENT=`echo $REPO | tr "/" "-"`
+          echo "Environment name: $ENVIRONMENT"
+          echo "::set-output name=environment::$ENVIRONMENT"
+      - name: Configure AWS credentials
+        id: creds
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+      - name: Deploy lambda function
+        id: deploy-lambda-function
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: ${{ steps.env-name.outputs.environment }}-lambda
+          template: cloudformation/lambda.yaml
+          parameter-overrides: >
+            DeploymentBucket=${{ secrets.AWS_S3_BUCKET }},
+            DeploymentKey=packaged.zip,
+            FunctionName=artograd-boot-api-boot-4,
+            AwsCognitoUserPoolUriKey=${{ secrets.AWS_COGNITO_USER_POOL_URI }}
+          role-arn: arn:aws:iam::${{ steps.creds.outputs.aws-account-id }}:role/github-actions-cloudformation-stack-role
+          no-fail-on-empty-changeset: "1"
+
+  deploy-API:
+    name: Deploy API for lambda
+    runs-on: ubuntu-22.04
+    needs: deploy-lambda
+    if: (github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'|| github.ref == 'refs/heads/deploy-fix'))
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Configure environment name
+        id: env-name
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          ENVIRONMENT=`echo $REPO | tr "/" "-"`
+          echo "Environment name: $ENVIRONMENT"
+          echo "::set-output name=environment::$ENVIRONMENT"
+      - name: Configure AWS credentials
+        id: creds
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+      - name: Get Lambda Function name and arn
+        id: get-lambda-info
+        run: |
+          LAMBDA_FUNCTION_NAME="${{ secrets.LAMBDA_FUNCTION_NAME }}"
+          LAMBDA_ARN=$(aws lambda get-function --function-name $LAMBDA_FUNCTION_NAME --query 'Configuration.FunctionArn' --output text)
+          echo "::set-output name=lambda-arn::$LAMBDA_ARN"
+          echo "::set-output name=lambda-name::$LAMBDA_FUNCTION_NAME"
+        env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: eu-central-1
-        if: success()
-
-#  deploy-lambda:
-#    name: Deploy lambda function
-#    runs-on: ubuntu-22.04
-#    needs: upload-to-s3
-#    if: (github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'|| github.ref == 'refs/heads/deploy-fix'))
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v2
-#      - name: Configure environment name
-#        id: env-name
-#        env:
-#          REPO: ${{ github.repository }}
-#        run: |
-#          ENVIRONMENT=`echo $REPO | tr "/" "-"`
-#          echo "Environment name: $ENVIRONMENT"
-#          echo "::set-output name=environment::$ENVIRONMENT"
-#      - name: Configure AWS credentials
-#        id: creds
-#        uses: aws-actions/configure-aws-credentials@v1
-#        with:
-#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#          aws-region: eu-central-1
-#      - name: Deploy lambda function
-#        id: deploy-lambda-function
-#        uses: aws-actions/aws-cloudformation-github-deploy@v1
-#        with:
-#          name: ${{ steps.env-name.outputs.environment }}-lambda
-#          template: cloudformation/lambda.yaml
-#          parameter-overrides: >
-#            DeploymentBucket=${{ secrets.AWS_S3_BUCKET }},
-#            DeploymentKey=api-0.0.1-SNAPSHOT-shaded.zip,
-#            FunctionName=artograd-boot-api-boot-4,
-#            AwsCognitoUserPoolUriKey=${{ secrets.AWS_COGNITO_USER_POOL_URI }}
-#          role-arn: arn:aws:iam::${{ steps.creds.outputs.aws-account-id }}:role/github-actions-cloudformation-stack-role
-#          no-fail-on-empty-changeset: "1"
-#
-#  deploy-API:
-#    name: Deploy API for lambda
-#    runs-on: ubuntu-22.04
-#    needs: deploy-lambda
-#    if: (github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'|| github.ref == 'refs/heads/deploy-fix'))
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v2
-#      - name: Configure environment name
-#        id: env-name
-#        env:
-#          REPO: ${{ github.repository }}
-#        run: |
-#          ENVIRONMENT=`echo $REPO | tr "/" "-"`
-#          echo "Environment name: $ENVIRONMENT"
-#          echo "::set-output name=environment::$ENVIRONMENT"
-#      - name: Configure AWS credentials
-#        id: creds
-#        uses: aws-actions/configure-aws-credentials@v1
-#        with:
-#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#          aws-region: eu-central-1
-#      - name: Get Lambda Function name and arn
-#        id: get-lambda-info
-#        run: |
-#          LAMBDA_FUNCTION_NAME="${{ secrets.LAMBDA_FUNCTION_NAME }}"
-#          LAMBDA_ARN=$(aws lambda get-function --function-name $LAMBDA_FUNCTION_NAME --query 'Configuration.FunctionArn' --output text)
-#          echo "::set-output name=lambda-arn::$LAMBDA_ARN"
-#          echo "::set-output name=lambda-name::$LAMBDA_FUNCTION_NAME"
-#        env:
-#          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
-#          LAMBDA_FUNCTION_NAME: ${{ secrets.LAMBDA_FUNCTION_NAME }}
-#      - name: Deploy API
-#        id: deploy-api
-#        uses: aws-actions/aws-cloudformation-github-deploy@v1
-#        with:
-#          name: ${{ steps.env-name.outputs.environment }}-api
-#          template: cloudformation/api.yaml
-#          role-arn: arn:aws:iam::${{ steps.creds.outputs.aws-account-id }}:role/github-actions-cloudformation-stack-role
-#          no-fail-on-empty-changeset: "1"
-#          parameter-overrides: >-
-#            LambdaFunctionArn=${{ steps.get-lambda-info.outputs.lambda-arn }},
-#            LambdaFunctionName=${{ steps.get-lambda-info.outputs.lambda-name }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          LAMBDA_FUNCTION_NAME: ${{ secrets.LAMBDA_FUNCTION_NAME }}
+      - name: Deploy API
+        id: deploy-api
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: ${{ steps.env-name.outputs.environment }}-api
+          template: cloudformation/api.yaml
+          role-arn: arn:aws:iam::${{ steps.creds.outputs.aws-account-id }}:role/github-actions-cloudformation-stack-role
+          no-fail-on-empty-changeset: "1"
+          parameter-overrides: >-
+            LambdaFunctionArn=${{ steps.get-lambda-info.outputs.lambda-arn }},
+            LambdaFunctionName=${{ steps.get-lambda-info.outputs.lambda-name }}
