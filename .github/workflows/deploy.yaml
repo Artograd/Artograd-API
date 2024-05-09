@@ -41,6 +41,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: packaged.zip
+          path: .
       - name: Just ls
         run: |
           ls -la
