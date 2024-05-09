@@ -103,7 +103,7 @@ jobs:
             DeploymentKey=packaged.zip,
             FunctionName=artograd-boot-api-boot-4,
             AwsCognitoUserPoolUriKey=${{ secrets.AWS_COGNITO_USER_POOL_URI }}
-          role-arn: arn:aws:iam::${{ steps.creds.outputs.aws-account-id }}:role/github-actions-cloudformation-stack-role
+#          role-arn: arn:aws:iam::${{ steps.creds.outputs.aws-account-id }}:role/github-actions-cloudformation-stack-role
           no-fail-on-empty-changeset: "1"
 
   deploy-API:
