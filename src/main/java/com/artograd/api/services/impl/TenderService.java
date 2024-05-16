@@ -9,6 +9,7 @@ import com.artograd.api.repositories.TenderRepository;
 import com.artograd.api.services.ITenderService;
 import com.artograd.api.services.IUserService;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -97,14 +98,7 @@ public class TenderService implements ITenderService {
             criteria.getSize(),
             Sort.by(Sort.Direction.fromString(criteria.getSortOrder()), criteria.getSortBy()));
     query.with(pageable);
-    List<Tender> tenders = mongoTemplate.find(query, Tender.class);
-    return tenders.stream()
-        .filter(
-            t ->
-                !isTenderStatusDraftOrCancelledOrDeleted(t)
-                    || (isTenderStatusDraftOrCancelledOrDeleted(t)
-                        && t.getOwnerId().equals(criteria.getOwnerId())))
-        .toList();
+    return mongoTemplate.find(query, Tender.class);
   }
 
   /**
@@ -144,6 +138,13 @@ public class TenderService implements ITenderService {
     }
     if (StringUtils.isNotBlank(criteria.getOwnerId())) {
       criteriaList.add(Criteria.where("ownerId").is(criteria.getOwnerId()));
+    } else {
+    	criteriaList.add(Criteria.where("status").nin(Arrays.asList(
+    			TenderStatus.DRAFT.toString(),
+    			TenderStatus.CANCELLED.toString(),
+    			TenderStatus.DELETED.toString(),
+    			TenderStatus.CLOSED.toString()
+    		)));
     }
     if (!CollectionUtils.isEmpty(criteria.getLocationLeafIds())) {
       criteriaList.add(Criteria.where("locationLeafId").in(criteria.getLocationLeafIds()));
@@ -192,11 +193,5 @@ public class TenderService implements ITenderService {
         .findFirst()
         .map(UserAttribute::getValue)
         .orElse("");
-  }
-
-  private boolean isTenderStatusDraftOrCancelledOrDeleted(Tender tender) {
-    return tender.getStatus().equals(TenderStatus.DRAFT.toString())
-        || tender.getStatus().equals(TenderStatus.CANCELLED.toString())
-        || tender.getStatus().equals(TenderStatus.DELETED.toString());
   }
 }
