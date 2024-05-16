@@ -139,12 +139,12 @@ public class TenderService implements ITenderService {
     if (StringUtils.isNotBlank(criteria.getOwnerId())) {
       criteriaList.add(Criteria.where("ownerId").is(criteria.getOwnerId()));
     } else {
-    	criteriaList.add(Criteria.where("status").nin(Arrays.asList(
-    			TenderStatus.DRAFT.toString(),
-    			TenderStatus.CANCELLED.toString(),
-    			TenderStatus.DELETED.toString(),
-    			TenderStatus.CLOSED.toString()
-    		)));
+      criteriaList.add(Criteria.where("status").nin(Arrays.asList(
+          TenderStatus.DRAFT.toString(),
+          TenderStatus.CANCELLED.toString(),
+          TenderStatus.DELETED.toString(),
+          TenderStatus.CLOSED.toString()
+      )));
     }
     if (!CollectionUtils.isEmpty(criteria.getLocationLeafIds())) {
       criteriaList.add(Criteria.where("locationLeafId").in(criteria.getLocationLeafIds()));
