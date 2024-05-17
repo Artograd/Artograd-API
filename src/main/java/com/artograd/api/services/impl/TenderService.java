@@ -138,6 +138,9 @@ public class TenderService implements ITenderService {
     }
     if (StringUtils.isNotBlank(criteria.getOwnerId())) {
       criteriaList.add(Criteria.where("ownerId").is(criteria.getOwnerId()));
+      criteriaList.add(Criteria.where("status").nin(Arrays.asList(
+          TenderStatus.DELETED.toString()
+      )));
     } else {
       criteriaList.add(Criteria.where("status").nin(Arrays.asList(
           TenderStatus.DRAFT.toString(),
