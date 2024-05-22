@@ -22,6 +22,9 @@ public class Tender {
   @Schema(description = "The description of the tender")
   private String description;
 
+  @Schema(description = "The list of attached images")
+  private List<FileInfo> images;
+
   @Schema(description = "The date when proposal submission starts")
   private Date submissionStart;
 
