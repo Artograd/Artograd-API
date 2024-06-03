@@ -78,4 +78,7 @@ public class Tender {
 
   @Schema(description = "The proposals for the tender")
   private List<Proposal> proposals;
+  
+  @Schema(description = "The reason of cancellation of the tender")
+  private String cancellationReason;
 }
