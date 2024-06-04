@@ -81,4 +81,7 @@ public class Tender {
   
   @Schema(description = "The reason of cancellation of the tender")
   private String cancellationReason;
+  
+  @Schema(description = "The end date of voting")
+  private Date votingEndDate;
 }
