@@ -1,10 +1,26 @@
 AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  FunctionName:
+    Type: String
+    Description: Lambda function name.
+
+  DeploymentBucket:
+    Type: String
+    Description: The name of the S3 bucket that contains the application code.
+
+  DeploymentKey:
+    Type: String
+    Description: The name of the .jar package in the S3 bucket.
+
+  AwsCognitoUserPoolUriKey:
+    Type: String
+    Description: AWS_COGNITO_USER_POOL_URI value.
 
 Resources:
   MyLambdaFunction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: ArtogradApiSpringBootLambda
+      FunctionName: !Ref FunctionName
       Handler: com.artograd.api.StreamLambdaHandler::handleRequest
       Role: !ImportValue LambdaExecutionRoleArn
       Runtime: java21
@@ -12,8 +28,8 @@ Resources:
       Timeout: 30
       PackageType: Zip
       Code:
-        S3Bucket: artograd-api-bucket
-        S3Key: target/api-0.0.1-SNAPSHOT-lambda-package.zip
+        S3Bucket: !Ref DeploymentBucket
+        S3Key: !Ref DeploymentKey
       Environment:
         Variables:
-          AWS_COGNITO_USER_POOL_URI: "https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_YQqYTKSA2"
+          AWS_COGNITO_USER_POOL_URI: !Ref AwsCognitoUserPoolUriKey

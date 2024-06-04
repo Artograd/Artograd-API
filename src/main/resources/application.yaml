@@ -10,7 +10,7 @@ spring:
       max-request-size: 1MB # Adjust as needed to accommodate multiple files or additional data in the request
   data:
     mongodb:
-      uri: ${ARTOGRAD_MONGO_DB_CONNECTTION}
+      uri: ${ARTOGRAD_MONGO_DB_CONNECTION}
 
 springdoc:
   packagesToScan: com.artograd.api.model, com.artograd.api.controllers
