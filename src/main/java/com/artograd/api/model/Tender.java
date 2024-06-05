@@ -22,9 +22,6 @@ public class Tender {
   @Schema(description = "The description of the tender")
   private String description;
 
-  @Schema(description = "The list of attached images")
-  private List<FileInfo> images;
-
   @Schema(description = "The date when proposal submission starts")
   private Date submissionStart;
 
@@ -50,10 +47,7 @@ public class Tender {
   private boolean showEmail;
 
   @Schema(description = "links to files of the supported documents")
-  private List<String> files;
-
-  @Schema(description = "links to small files of the supported documents")
-  private List<String> snapFiles;
+  private List<FileInfo> files;
 
   @Schema(description = "Status of the tender")
   private String status;

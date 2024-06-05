@@ -27,7 +27,7 @@ public class Proposal {
   private String description;
 
   @Schema(description = "The list of attached images")
-  private List<FileInfo> images;
+  private List<FileInfo> files;
 
   @Schema(description = "The cover image")
   private FileInfo cover;
