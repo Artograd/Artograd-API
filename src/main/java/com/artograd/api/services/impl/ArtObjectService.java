@@ -155,7 +155,7 @@ public class ArtObjectService implements IArtObjectService {
     artObject.setDescription(tender.getDescription());
     artObject.setDeliveryDate(tender.getExpectedDelivery());
     artObject.setCategory(tender.getCategory());
-    artObject.setFiles(proposal.getImages());
+    artObject.setFiles(proposal.getFiles());
     artObject.setCover(proposal.getCover());
     artObject.setLocation(tender.getLocation());
     artObject.setLocationLeafId(tender.getLocationLeafId());

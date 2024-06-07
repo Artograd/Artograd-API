@@ -78,4 +78,10 @@ public class Tender {
   
   @Schema(description = "The end date of voting")
   private Date votingEndDate;
+  
+  @Schema(description = "The ID of art object after conversion")
+  private String artObjectId;
+  
+  @Schema(description = "The ID of won proposal")
+  private String winnerId;
 }
