@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="me">
+<head>
+    ${emailStyle}
+</head>
+<body>
+    <p>Zdravo, <b>${userName}</b>!</p>
+    <p>Primili ste ovu poruku jer ste navedeni kao kontakt za društvene medije izdavača tendera.</p>
+    <p>Ovo je automatski generisan email. Molimo vas da ne odgovarate na njega.</p>
+    
+    <p>Sa zadovoljstvom vas obavještavamo da je na platformi <b>${platformName}</b> objavljen novi tender za umjetnički objekat od strane ${organizationName}. Ljubazno vas molimo za pomoć u širenju informacije o ovoj prilici putem vaših medijskih kanala. Ispod su detalji tendera:</p>
+
+    <ul>
+        <li><strong>Naslov tendera:</strong> ${tenderTitle}</li>
+        <li><strong>Izdavač tendera:</strong> ${stateOfficerName} od ${organizationName}</li>
+        <li><strong>Link do tendera:</strong> <a href="${tenderLink}">${tenderLink}</a></li>
+        <li><strong>Period podnošenja prijedloga:</strong> ${submissionPeriodFrom} - ${submissionPeriodTo}</li>
+    </ul>
+    
+    <p>Želimo naglasiti da je <b>${platformName}</b> nekomercijalna platforma posvećena podršci i promociji umjetničkog stvaralaštva, koje je također nekomercijalni proces. U skladu s tim, iskreno vas molimo da <b>objavite zahtjev za podnošenje prijedloga za ovaj tender vašoj publici</b> besplatno. Vaša suradnja će značajno doprinijeti podsticanju kreativnosti, uljepšavanju pejzaža naših gradova i pružanju mogućnosti talentovanim umjetnicima.</p>
+    
+    <div th:if="${stateOfficerPhone} != null">
+        <p>Za dodatne informacije ili pomoć, slobodno kontaktirajte ${stateOfficerName} na ${stateOfficerPhone}.</p>
+    </div>
+
+    <p>S poštovanjem,</p>
+    <p>platforma <a href="${platformLink}" style="text-decoration: none; color: inherit;"><b>${platformName}</b></a></p>
+</body>
+</html>

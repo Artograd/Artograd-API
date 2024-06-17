@@ -22,6 +22,10 @@ aws:
     distribution-domain: ${CLOUDFRONT_DISTRIBUTION_DOMAIN}
   cognito:
     userPoolId: ${AWS_COGNITO_USER_POOL_ID}
+  sqs:
+    mails: ${SQS_EMAILS}
 
 artograd:
   env: ${ARTOGRAD_API_ENV}
+  name: Artograd.me
+  link: https://artograd.me

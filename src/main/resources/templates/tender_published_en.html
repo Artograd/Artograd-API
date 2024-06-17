@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    ${emailStyle}
+</head>
+<body>
+    <p>Hello, <b>${userName}</b>!</p>
+    <p>You received this message because you are mentioned as a social media contact for the tender publisher.</p>
+    <p>This is an auto-generated email. Please do not reply on it.</p>
+    
+    <p>We are pleased to inform you that a new art-object tender has been published on the <b>${platformName}</b> platform by ${organizationName}. We kindly request your assistance in spreading the word about this opportunity through your media channels. Below are the details of the tender:</p>
+
+    <ul>
+        <li><strong>Tender Title:</strong> ${tenderTitle}</li>
+        <li><strong>Tender publisher:</strong> ${stateOfficerName} from ${organizationName}</li>
+        <li><strong>Link to Tender:</strong> <a href="${tenderLink}">${tenderLink}</a></li>
+        <li><strong>Proposals Submission Period:</strong> ${submissionPeriodFrom} - ${submissionPeriodTo}</li>
+    </ul>
+    
+    <p>We would like to emphasize that <b>${platformName}</b> is a non-commercial platform dedicated to supporting and promoting art creation, which is also a non-commercial process. In light of this, we sincerely ask you to <b>publish the request for proposal submissions for this tender to your audience</b> free of charge. Your cooperation will significantly contribute to fostering creativity, beautifying our cities' landscapes, and providing opportunities for talented artists.</p>
+    
+    <div th:if="${stateOfficerPhone} != null">
+        <p>For further information or assistance, please feel free to contact ${stateOfficerName} at ${stateOfficerPhone}.</p>
+    </div>
+
+    <p>Warm regards,</p>
+    <p><a href="${platformLink}" style="text-decoration: none; color: inherit;"><b>${platformName}</b></a> platform</p>
+</body>
+</html>
