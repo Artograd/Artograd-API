@@ -45,7 +45,7 @@ public class EmailController {
 
     Tender tender = tenderService.getTender(tenderId).orElse(null);
     if (tender == null) {
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Tender not found");
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Tender not found");
     }
 
     if (!claims.getUsername().equals(tender.getOwnerId())) {
