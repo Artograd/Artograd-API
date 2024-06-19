@@ -38,4 +38,19 @@ public class User {
     return userAttribute.getEnumKey() != null
         && userAttribute.getEnumKey().equals(UserAttributeKey.COGNITO_GROUPS);
   }
+  
+  /**
+   * Retrieves the attribute value by the specified enum key.
+   *
+   * @param key the UserAttributeKey enum value
+   * @return the value of the attribute if found, otherwise null
+   */
+  public String getAttributeByKey(UserAttributeKey key) {
+    for (UserAttribute userAttribute : attributes) {
+      if (userAttribute.getEnumKey() == key) {
+        return userAttribute.getValue();
+      }
+    }
+    return null;
+  }
 }

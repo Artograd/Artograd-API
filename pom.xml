@@ -107,6 +107,16 @@
       <scope>test</scope>
     </dependency>
 
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+	  <artifactId>sqs</artifactId>
+	  <version>2.20.130</version>
+    </dependency>
+	
+    <dependency>
+	  <groupId>org.thymeleaf</groupId>
+	  <artifactId>thymeleaf</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

@@ -134,7 +134,7 @@ public class CognitoUserService implements IUserService {
 
       if (!responseGroups.groups().isEmpty()) {
         userAttrsResult.add(
-            new UserAttribute("cognito:groups", responseGroups.groups().getFirst().groupName()));
+            new UserAttribute("cognito:groups", responseGroups.groups().get(0).groupName()));
       }
 
       return Optional.of(new User(userAttrsResult));
