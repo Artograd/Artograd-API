@@ -59,7 +59,9 @@ public class ProposalController {
   public ResponseEntity<?> createProposal(
       @PathVariable String tenderId, @RequestBody Proposal proposal, HttpServletRequest request) {
     UserTokenClaims claims = userService.getUserTokenClaims(request).orElse(null);
-    if (claims == null || tenderService.isTenderOwner(tenderId, claims.getUsername())) {
+    if (claims == null
+        || tenderService.isTenderOwner(tenderId, claims.getUsername())
+        || claims.isOfficer()) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Operation not allowed.");
     }
 

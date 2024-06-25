@@ -22,4 +22,6 @@ public interface IUserService {
       UserRole requesterRole,
       boolean isProfileOwner,
       UserRole profileRole);
+
+  boolean updateUserRole(String userName, UserRole role);
 }

@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminAddUserToGroupRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminDeleteUserRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminGetUserRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminGetUserResponse;
@@ -177,6 +178,30 @@ public class CognitoUserService implements IUserService {
     return attributes.stream()
         .filter(attr -> shouldIncludeAttribute(attr, requesterRole, isProfileOwner, profileRole))
         .toList();
+  }
+
+  /**
+   * Updates the role of a user.
+   *
+   * @param userName
+   * @param role
+   * @return
+   */
+  @Override
+  public boolean updateUserRole(String userName, UserRole role) {
+    try (CognitoIdentityProviderClient cognitoClient =
+        CognitoIdentityProviderClient.builder().build()) {
+      cognitoClient.adminAddUserToGroup(
+          AdminAddUserToGroupRequest.builder()
+              .groupName(role.getRoleName())
+              .username(userName)
+              .userPoolId(userPoolId)
+              .build());
+      return true;
+    } catch (Exception e) {
+      logger.error("Error updating user role by username: {}", e.getMessage(), e);
+      return false;
+    }
   }
 
   private boolean shouldIncludeAttribute(
