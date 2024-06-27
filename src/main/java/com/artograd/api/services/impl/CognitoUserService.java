@@ -183,8 +183,8 @@ public class CognitoUserService implements IUserService {
   /**
    * Updates the role of a user.
    *
-   * @param userName
-   * @param role
+   * @param userName Name of the user
+   * @param role New role of the user
    * @return
    */
   @Override
