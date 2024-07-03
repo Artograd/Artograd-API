@@ -3,6 +3,7 @@ package com.artograd.api.services.impl;
 import com.artograd.api.model.Proposal;
 import com.artograd.api.model.User;
 import com.artograd.api.model.UserAttribute;
+import com.artograd.api.model.enums.UserRole;
 import com.artograd.api.services.IProposalService;
 import com.artograd.api.services.ITenderService;
 import com.artograd.api.services.IUserService;
@@ -69,8 +70,19 @@ public class ProposalService implements IProposalService {
 
               tender.getProposals().add(proposal);
               tenderService.updateTender(tender);
-              return proposal;
+              boolean isCheckAndUpdateSuccess = checkAndUpdateArtistRole(realUserName);
+              return isCheckAndUpdateSuccess ? proposal : null;
             });
+  }
+
+  private boolean checkAndUpdateArtistRole(String realUserName) {
+    return cognitoService
+        .getUserByUsername(realUserName)
+        .map(
+            user ->
+                user.getRole() == UserRole.ARTIST
+                    || cognitoService.updateUserRole(realUserName, UserRole.ARTIST))
+        .orElse(false);
   }
 
   /**
