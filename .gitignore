@@ -3,6 +3,7 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+bin/
 
 ### AWS SAM ###
 .aws-sam/
@@ -34,3 +35,4 @@ build/
 
 ### VS Code ###
 .vscode/
+/.apt_generated_tests/
