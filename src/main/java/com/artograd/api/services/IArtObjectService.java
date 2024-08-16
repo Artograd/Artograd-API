@@ -20,4 +20,6 @@ public interface IArtObjectService {
   List<ArtObject> searchArtObjects(ArtObjectSearchCriteria artObjectSearchCriteria);
 
   boolean isArtObjectOwner(String objectId, String username);
+
+  Optional<ArtObject> patchArtObject(String id, ArtObject artObject);
 }

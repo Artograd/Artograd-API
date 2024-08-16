@@ -149,6 +149,52 @@ public class ArtObjectService implements IArtObjectService {
         .orElse(false);
   }
 
+  @Override
+  public Optional<ArtObject> patchArtObject(String id, ArtObject artObject) {
+    return artObjectRepository
+        .findById(id)
+        .flatMap(
+            ao -> {
+              if (artObject.getTitle() != null) {
+                ao.setTitle(artObject.getTitle());
+              }
+              if (artObject.getDescription() != null) {
+                ao.setDescription(artObject.getDescription());
+              }
+              if (artObject.getFiles() != null) {
+                ao.setFiles(artObject.getFiles());
+              }
+              if (artObject.getCover() != null) {
+                ao.setCover(artObject.getCover());
+              }
+              if (artObject.getBudget() != null) {
+                ao.setBudget(artObject.getBudget());
+              }
+              if (artObject.getStatus() != null) {
+                ao.setStatus(artObject.getStatus());
+              }
+              if (artObject.getCategory() != null) {
+                ao.setCategory(artObject.getCategory());
+              }
+              if (artObject.getLocation() != null) {
+                ao.setLocation(artObject.getLocation());
+              }
+              if (artObject.getLocationLeafId() != null) {
+                ao.setLocationLeafId(artObject.getLocationLeafId());
+              }
+              if (artObject.getDeliveryDate() != null) {
+                ao.setDeliveryDate(artObject.getDeliveryDate());
+              }
+              if (artObject.getSupplier() != null) {
+                ao.setSupplier(artObject.getSupplier());
+              }
+              if (artObject.getPayment() != null) {
+                ao.setPayment(artObject.getPayment());
+              }
+              return Optional.of(artObjectRepository.save(ao));
+            });
+  }
+
   private void setArtObjectFromTenderAndProposal(
       ArtObject artObject, Tender tender, Proposal proposal) {
     artObject.setTitle(tender.getTitle());
