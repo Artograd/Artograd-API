@@ -119,11 +119,13 @@ public class ArtObjectController {
   public ResponseEntity<?> patchArtObject(
       @PathVariable String id, @RequestBody ArtObject artObject, HttpServletRequest request) {
     Optional<UserTokenClaims> claims = userService.getUserTokenClaims(request);
-
+    String username = claims.get().getUsername();
+    
     return claims
         .filter(UserTokenClaims::isOfficer)
-        .flatMap(c -> tenderService.getTender(artObject.getTender().getId()))
-        .filter(tender -> tender.getOwnerId().equals(claims.get().getUsername()))
+        .flatMap(c -> artObjectService.getArtObject(id))
+        .filter(ao -> 
+             ao.getOwner().getId().equals(username) || ao.getSupplier().getId().equals(username))
         .flatMap(tender -> artObjectService.patchArtObject(id, artObject))
         .map(patchedArtObject -> ResponseEntity.ok().body(patchedArtObject))
         .orElseGet(() -> ResponseEntity.status(HttpStatus.FORBIDDEN).build());
