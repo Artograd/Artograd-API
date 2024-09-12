@@ -23,4 +23,10 @@ public class BudgetInfo {
 
   @Schema(description = "Amount of money that are gathered for art object implementation")
   private double fundraisingGathered;
+
+  @Schema(description = "Amount of money that are requests by supplier additionally")
+  private double moreFundsRequested;
+
+  @Schema(description = "Justification about necessity to add more funds for the art objects")
+  private String justification;
 }
