@@ -43,6 +43,9 @@ public class ArtObject {
   @Schema(description = "Art object location")
   private Location location;
 
+  @Schema(description = "Top funders of art object")
+  private String topContributors;
+
   @Schema(description = "The ID of the leaf object in the location nested hierarcy.")
   private String locationLeafId;
 
