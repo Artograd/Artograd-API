@@ -158,6 +158,9 @@ public class ArtObjectService implements IArtObjectService {
               if (artObject.getTitle() != null) {
                 ao.setTitle(artObject.getTitle());
               }
+              if (artObject.getTopContributors() != null) {
+                ao.setTopContributors(artObject.getTopContributors());
+              }
               if (artObject.getDescription() != null) {
                 ao.setDescription(artObject.getDescription());
               }
