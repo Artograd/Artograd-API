@@ -8,6 +8,7 @@ import com.artograd.api.model.PaymentInfo;
 import com.artograd.api.model.Proposal;
 import com.artograd.api.model.Tender;
 import com.artograd.api.model.UserInfo;
+import com.artograd.api.model.enums.UserAttributeKey;
 import com.artograd.api.repositories.ArtObjectRepository;
 import com.artograd.api.services.IArtObjectService;
 import com.artograd.api.services.IProposalService;
@@ -237,9 +238,11 @@ public class ArtObjectService implements IArtObjectService {
               UserInfo userInfo = new UserInfo();
               userInfo.setId(userId);
               userInfo.setName(userAttributeHelper.formatUserName(user));
-              userInfo.setPicture(userAttributeHelper.getUserAttributeValue(user, "picture"));
+              userInfo.setPicture(
+                  userAttributeHelper.getUserAttributeValue(user, UserAttributeKey.PICTURE));
               userInfo.setOrganization(
-                  userAttributeHelper.getUserAttributeValue(user, "custom:organization"));
+                  userAttributeHelper.getUserAttributeValue(
+                      user, UserAttributeKey.CUSTOM_ORGANIZATION));
               return userInfo;
             })
         .orElse(null);

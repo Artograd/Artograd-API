@@ -2,6 +2,7 @@ package com.artograd.api.helpers;
 
 import com.artograd.api.model.User;
 import com.artograd.api.model.UserAttribute;
+import com.artograd.api.model.enums.UserAttributeKey;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
@@ -25,8 +26,8 @@ public class UserAttributeHelper {
    * @return The formatted user name.
    */
   public String formatUserName(List<UserAttribute> attributes) {
-    String givenName = getUserAttributeValue(attributes, "given_name");
-    String familyName = getUserAttributeValue(attributes, "family_name");
+    String givenName = getUserAttributeValue(attributes, UserAttributeKey.GIVEN_NAME);
+    String familyName = getUserAttributeValue(attributes, UserAttributeKey.FAMILY_NAME);
     return String.format("%s %s", givenName, familyName).trim();
   }
 
@@ -34,23 +35,23 @@ public class UserAttributeHelper {
    * Gets the user attribute value by the provided attribute name.
    *
    * @param user The user.
-   * @param attributeName The attribute name.
+   * @param attribute The attribute name.
    * @return The user attribute value.
    */
-  public String getUserAttributeValue(User user, String attributeName) {
-    return getUserAttributeValue(user.getAttributes(), attributeName);
+  public String getUserAttributeValue(User user, UserAttributeKey attribute) {
+    return getUserAttributeValue(user.getAttributes(), attribute);
   }
 
   /**
    * Gets the user attribute value by the provided attribute name.
    *
    * @param attributes The user attributes.
-   * @param attributeName The attribute name.
+   * @param attribute The attribute name.
    * @return The user attribute value.
    */
-  public String getUserAttributeValue(List<UserAttribute> attributes, String attributeName) {
+  public String getUserAttributeValue(List<UserAttribute> attributes, UserAttributeKey attribute) {
     return attributes.stream()
-        .filter(attr -> attr.getName().equals(attributeName))
+        .filter(attr -> attr.getName().equals(attribute.getAttributeKey()))
         .findFirst()
         .map(UserAttribute::getValue)
         .orElse("");

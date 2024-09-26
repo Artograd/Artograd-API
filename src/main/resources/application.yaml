@@ -23,7 +23,7 @@ aws:
   cognito:
     userPoolId: ${AWS_COGNITO_USER_POOL_ID}
   sqs:
-    mails: ${SQS_EMAILS:https://sqs.eu-central-1.amazonaws.com/124092974016/dev_emails.fifo}
+    mails: ${SQS_EMAILS}
 
 artograd:
   env: ${ARTOGRAD_API_ENV}

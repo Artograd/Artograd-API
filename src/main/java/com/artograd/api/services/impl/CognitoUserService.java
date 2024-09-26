@@ -23,6 +23,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,8 +112,11 @@ public class CognitoUserService implements IUserService {
               .build();
 
       cognitoClient.adminUpdateUserAttributes(updateRequest);
-      userServiceHelper.updateUserProfileDataInTendersAndProposals(userName, attributes);
-      userServiceHelper.updateUserProfileDataInArtObjects(userName, attributes);
+      CompletableFuture.runAsync(
+          () -> userServiceHelper.updateUserProfileDataInTendersAndProposals(userName, attributes));
+
+      CompletableFuture.runAsync(
+          () -> userServiceHelper.updateUserProfileDataInArtObjects(userName, attributes));
       return true;
     } catch (Exception e) {
       logger.error("Error updating user attributes by username: {}", e.getMessage(), e);

@@ -4,6 +4,7 @@ import com.artograd.api.helpers.UserAttributeHelper;
 import com.artograd.api.model.Tender;
 import com.artograd.api.model.TenderSearchCriteria;
 import com.artograd.api.model.enums.TenderStatus;
+import com.artograd.api.model.enums.UserAttributeKey;
 import com.artograd.api.repositories.TenderRepository;
 import com.artograd.api.services.ITenderService;
 import com.artograd.api.services.IUserService;
@@ -179,9 +180,11 @@ public class TenderService implements ITenderService {
           .ifPresent(
               user -> {
                 tender.setOwnerName(userAttributeHelper.formatUserName(user));
-                tender.setOwnerPicture(userAttributeHelper.getUserAttributeValue(user, "picture"));
+                tender.setOwnerPicture(
+                    userAttributeHelper.getUserAttributeValue(user, UserAttributeKey.PICTURE));
                 tender.setOrganization(
-                    userAttributeHelper.getUserAttributeValue(user, "custom:organization"));
+                    userAttributeHelper.getUserAttributeValue(
+                        user, UserAttributeKey.CUSTOM_ORGANIZATION));
               });
     }
   }
