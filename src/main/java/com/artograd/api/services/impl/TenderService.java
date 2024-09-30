@@ -1,10 +1,10 @@
 package com.artograd.api.services.impl;
 
+import com.artograd.api.helpers.UserAttributeHelper;
 import com.artograd.api.model.Tender;
 import com.artograd.api.model.TenderSearchCriteria;
-import com.artograd.api.model.User;
-import com.artograd.api.model.UserAttribute;
 import com.artograd.api.model.enums.TenderStatus;
+import com.artograd.api.model.enums.UserAttributeKey;
 import com.artograd.api.repositories.TenderRepository;
 import com.artograd.api.services.ITenderService;
 import com.artograd.api.services.IUserService;
@@ -32,6 +32,8 @@ public class TenderService implements ITenderService {
   @Autowired private IUserService userService;
 
   @Autowired private MongoTemplate mongoTemplate;
+
+  @Autowired private UserAttributeHelper userAttributeHelper;
 
   /**
    * Creates a new Tender.
@@ -66,7 +68,6 @@ public class TenderService implements ITenderService {
    */
   @Override
   public Optional<Tender> updateTender(Tender tender) {
-    // TODO: Replace to modifiedAt
     tender.setCreatedAt(getTender(tender.getId()).get().getCreatedAt());
     enrichTenderWithOwnerDataAndTimestamps(tender);
     Tender savedTender = tenderRepository.save(tender);
@@ -138,16 +139,17 @@ public class TenderService implements ITenderService {
     }
     if (StringUtils.isNotBlank(criteria.getOwnerId())) {
       criteriaList.add(Criteria.where("ownerId").is(criteria.getOwnerId()));
-      criteriaList.add(Criteria.where("status").nin(Arrays.asList(
-          TenderStatus.DELETED.toString()
-      )));
+      criteriaList.add(
+          Criteria.where("status").nin(Arrays.asList(TenderStatus.DELETED.toString())));
     } else {
-      criteriaList.add(Criteria.where("status").nin(Arrays.asList(
-          TenderStatus.DRAFT.toString(),
-          TenderStatus.CANCELLED.toString(),
-          TenderStatus.DELETED.toString(),
-          TenderStatus.CLOSED.toString()
-      )));
+      criteriaList.add(
+          Criteria.where("status")
+              .nin(
+                  Arrays.asList(
+                      TenderStatus.DRAFT.toString(),
+                      TenderStatus.CANCELLED.toString(),
+                      TenderStatus.DELETED.toString(),
+                      TenderStatus.CLOSED.toString())));
     }
     if (!CollectionUtils.isEmpty(criteria.getLocationLeafIds())) {
       criteriaList.add(Criteria.where("locationLeafId").in(criteria.getLocationLeafIds()));
@@ -177,24 +179,13 @@ public class TenderService implements ITenderService {
           .getUserByUsername(tender.getOwnerId())
           .ifPresent(
               user -> {
-                tender.setOwnerName(formatUserName(user));
-                tender.setOwnerPicture(getUserAttributeValue(user, "picture"));
-                tender.setOrganization(getUserAttributeValue(user, "custom:organization"));
+                tender.setOwnerName(userAttributeHelper.formatUserName(user));
+                tender.setOwnerPicture(
+                    userAttributeHelper.getUserAttributeValue(user, UserAttributeKey.PICTURE));
+                tender.setOrganization(
+                    userAttributeHelper.getUserAttributeValue(
+                        user, UserAttributeKey.CUSTOM_ORGANIZATION));
               });
     }
-  }
-
-  private String formatUserName(User user) {
-    String givenName = getUserAttributeValue(user, "given_name");
-    String familyName = getUserAttributeValue(user, "family_name");
-    return String.format("%s %s", givenName, familyName).trim();
-  }
-
-  private String getUserAttributeValue(User user, String attributeName) {
-    return user.getAttributes().stream()
-        .filter(attr -> attr.getName().equals(attributeName))
-        .findFirst()
-        .map(UserAttribute::getValue)
-        .orElse("");
   }
 }

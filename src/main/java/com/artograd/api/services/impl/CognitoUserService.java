@@ -1,5 +1,6 @@
 package com.artograd.api.services.impl;
 
+import com.artograd.api.helpers.UserServiceHelper;
 import com.artograd.api.model.User;
 import com.artograd.api.model.UserAttribute;
 import com.artograd.api.model.enums.UserAttributeKey;
@@ -22,8 +23,10 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
@@ -71,6 +74,8 @@ public class CognitoUserService implements IUserService {
   @Value("${aws.cognito.userPoolId}")
   private String userPoolId;
 
+  @Autowired private UserServiceHelper userServiceHelper;
+
   @Override
   public boolean deleteUserByUsername(String userName) {
     try (CognitoIdentityProviderClient cognitoClient =
@@ -107,6 +112,11 @@ public class CognitoUserService implements IUserService {
               .build();
 
       cognitoClient.adminUpdateUserAttributes(updateRequest);
+      CompletableFuture.runAsync(
+          () -> userServiceHelper.updateUserProfileDataInTendersAndProposals(userName, attributes));
+
+      CompletableFuture.runAsync(
+          () -> userServiceHelper.updateUserProfileDataInArtObjects(userName, attributes));
       return true;
     } catch (Exception e) {
       logger.error("Error updating user attributes by username: {}", e.getMessage(), e);

@@ -1,14 +1,14 @@
 package com.artograd.api.services.impl;
 
+import com.artograd.api.helpers.UserAttributeHelper;
 import com.artograd.api.model.ArtObject;
 import com.artograd.api.model.ArtObjectSearchCriteria;
 import com.artograd.api.model.BudgetInfo;
 import com.artograd.api.model.PaymentInfo;
 import com.artograd.api.model.Proposal;
 import com.artograd.api.model.Tender;
-import com.artograd.api.model.User;
-import com.artograd.api.model.UserAttribute;
 import com.artograd.api.model.UserInfo;
+import com.artograd.api.model.enums.UserAttributeKey;
 import com.artograd.api.repositories.ArtObjectRepository;
 import com.artograd.api.services.IArtObjectService;
 import com.artograd.api.services.IProposalService;
@@ -44,6 +44,8 @@ public class ArtObjectService implements IArtObjectService {
   @Autowired private MongoTemplate mongoTemplate;
 
   @Autowired private SequenceGeneratorService sequenceGeneratorService;
+
+  @Autowired private UserAttributeHelper userAttributeHelper;
 
   @Override
   public Optional<ArtObject> createArtObject(String tenderId, String winnerProposalId) {
@@ -238,25 +240,14 @@ public class ArtObjectService implements IArtObjectService {
             user -> {
               UserInfo userInfo = new UserInfo();
               userInfo.setId(userId);
-              userInfo.setName(formatUserName(user));
-              userInfo.setPicture(getUserAttributeValue(user, "picture"));
-              userInfo.setOrganization(getUserAttributeValue(user, "custom:organization"));
+              userInfo.setName(userAttributeHelper.formatUserName(user));
+              userInfo.setPicture(
+                  userAttributeHelper.getUserAttributeValue(user, UserAttributeKey.PICTURE));
+              userInfo.setOrganization(
+                  userAttributeHelper.getUserAttributeValue(
+                      user, UserAttributeKey.CUSTOM_ORGANIZATION));
               return userInfo;
             })
         .orElse(null);
-  }
-
-  private String formatUserName(User user) {
-    String givenName = getUserAttributeValue(user, "given_name");
-    String familyName = getUserAttributeValue(user, "family_name");
-    return String.format("%s %s", givenName, familyName).trim();
-  }
-
-  private String getUserAttributeValue(User user, String attributeName) {
-    return user.getAttributes().stream()
-        .filter(attr -> attr.getName().equals(attributeName))
-        .findFirst()
-        .map(UserAttribute::getValue)
-        .orElse("");
   }
 }
