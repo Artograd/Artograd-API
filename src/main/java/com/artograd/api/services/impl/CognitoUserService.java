@@ -6,6 +6,7 @@ import com.artograd.api.model.UserAttribute;
 import com.artograd.api.model.enums.UserAttributeKey;
 import com.artograd.api.model.enums.UserRole;
 import com.artograd.api.model.system.UserTokenClaims;
+import com.artograd.api.services.IEmailWhitelistService;
 import com.artograd.api.services.IUserService;
 import com.artograd.api.utils.CommonUtils;
 import com.auth0.jwk.JwkProvider;
@@ -75,6 +76,9 @@ public class CognitoUserService implements IUserService {
   private String userPoolId;
 
   @Autowired private UserServiceHelper userServiceHelper;
+  
+  @Autowired
+  private IEmailWhitelistService emailWhitelistService;
 
   @Override
   public boolean deleteUserByUsername(String userName) {
@@ -270,11 +274,28 @@ public class CognitoUserService implements IUserService {
     UserTokenClaims tokenClaims = new UserTokenClaims();
     tokenClaims.setUsername(jwt.getClaim("cognito:username").asString());
     String[] roles = jwt.getClaim("cognito:groups").asArray(String.class);
-    tokenClaims.setUserRole(extractUserRole(roles));
-    tokenClaims.setOfficer(tokenClaims.getUserRole().equals(UserRole.OFFICIAL));
-    tokenClaims.setArtist(tokenClaims.getUserRole().equals(UserRole.ARTIST));
+    UserRole userRole = extractUserRole(roles);
+
+    if (userRole == UserRole.ANONYMOUS_OR_CITIZEN) {
+      String email = jwt.getClaim("email").asString();
+      if (email != null && emailWhitelistService.isEmailWhitelisted(email)) {
+        boolean updated = updateUserRole(tokenClaims.getUsername(), UserRole.OFFICIAL);
+        if (updated) {
+          userRole = UserRole.OFFICIAL;
+          logger.info("User '{}' assigned OFFICIAL role based on email '{}'",
+              tokenClaims.getUsername(), email);
+        } else {
+          logger.warn("Failed to update role for user '{}'", tokenClaims.getUsername());
+        }
+      }
+    }
+
+    tokenClaims.setUserRole(userRole);
+    tokenClaims.setOfficer(userRole.equals(UserRole.OFFICIAL));
+    tokenClaims.setArtist(userRole.equals(UserRole.ARTIST));
     return tokenClaims;
   }
+
 
   private UserRole extractUserRole(String[] roles) {
     if (roles == null) {

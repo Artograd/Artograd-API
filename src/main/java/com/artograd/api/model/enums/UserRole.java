@@ -1,5 +1,7 @@
 package com.artograd.api.model.enums;
 
+import java.util.HashMap;
+import java.util.Map;
 import lombok.Getter;
 
 @Getter
@@ -9,24 +11,25 @@ public enum UserRole {
   OFFICIAL("Officials");
 
   private final String roleName;
+  private static final Map<String, UserRole> ROLE_MAP = new HashMap<>();
+
+  static {
+    for (UserRole role : UserRole.values()) {
+      ROLE_MAP.put(role.roleName.toLowerCase(), role);
+    }
+  }
 
   UserRole(String roleName) {
     this.roleName = roleName;
   }
 
-  /**
-   * Converts a string representation of a UserRole to its corresponding enum value.
-   *
-   * @param text the string representation of the UserRole
-   * @return the enum value of the UserRole, or ANONYMOUS_OR_CITIZEN if the string does not match
-   *         any UserRole
-   */
   public static UserRole fromString(String text) {
-    for (UserRole role : UserRole.values()) {
-      if (role.roleName.equalsIgnoreCase(text)) {
-        return role;
-      }
-    }
-    return ANONYMOUS_OR_CITIZEN;
+    return text != null ? ROLE_MAP.getOrDefault(text.toLowerCase(), ANONYMOUS_OR_CITIZEN) :
+        ANONYMOUS_OR_CITIZEN;
+  }
+
+  @Override
+  public String toString() {
+    return roleName;
   }
 }
