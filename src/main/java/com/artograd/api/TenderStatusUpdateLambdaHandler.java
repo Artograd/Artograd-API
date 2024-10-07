@@ -31,7 +31,8 @@ public class TenderStatusUpdateLambdaHandler implements RequestHandler<Scheduled
         tenderRepository.findBySubmissionStartAndStatus(today, TenderStatus.PUBLISHED.toString());
 
     for (Tender tender : tenders) {
-      System.out.println(tender);
+      tender.setStatus(TenderStatus.IDEATION.toString());
+      tenderRepository.save(tender);
     }
 
     return "Tenders updated successfully";
