@@ -109,13 +109,13 @@
 
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
-	  <artifactId>sqs</artifactId>
-	  <version>2.20.130</version>
+      <artifactId>sqs</artifactId>
+      <version>2.20.130</version>
     </dependency>
-	
+
     <dependency>
-	  <groupId>org.thymeleaf</groupId>
-	  <artifactId>thymeleaf</artifactId>
+      <groupId>org.thymeleaf</groupId>
+      <artifactId>thymeleaf</artifactId>
     </dependency>
   </dependencies>
 
@@ -145,7 +145,7 @@
             <id>validate</id>
             <phase>validate</phase>
             <configuration>
-<!--              <configLocation>google_checks.xml</configLocation>-->
+              <!--              <configLocation>google_checks.xml</configLocation>-->
               <configLocation>src/main/resources/google_checks.xml</configLocation>
               <failsOnError>true</failsOnError>
               <consoleOutput>true</consoleOutput>
