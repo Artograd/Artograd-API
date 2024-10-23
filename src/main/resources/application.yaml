@@ -12,6 +12,13 @@ spring:
     mongodb:
       uri: ${ARTOGRAD_MONGO_DB_CONNECTTION}
 
+application:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AWS_COGNITO_USER_POOL_URI}
+
 springdoc:
   packagesToScan: com.artograd.api.model, com.artograd.api.controllers
 

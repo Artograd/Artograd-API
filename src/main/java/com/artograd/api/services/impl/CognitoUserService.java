@@ -1,5 +1,6 @@
 package com.artograd.api.services.impl;
 
+import com.artograd.api.config.AwsProperties;
 import com.artograd.api.helpers.UserServiceHelper;
 import com.artograd.api.model.User;
 import com.artograd.api.model.UserAttribute;
@@ -27,7 +28,6 @@ import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminAddUserToGroupRequest;
@@ -71,17 +71,20 @@ public class CognitoUserService implements IUserService {
       EnumSet.of(UserAttributeKey.EMAIL, UserAttributeKey.PHONE_NUMBER);
   private static final Logger logger = LoggerFactory.getLogger(CognitoUserService.class);
 
-  @Value("${aws.cognito.userPoolId}")
-  private String userPoolId;
+  @Autowired private AwsProperties awsProperties;
 
   @Autowired private UserServiceHelper userServiceHelper;
 
   @Override
   public boolean deleteUserByUsername(String userName) {
+
     try (CognitoIdentityProviderClient cognitoClient =
         CognitoIdentityProviderClient.builder().build()) {
       AdminDeleteUserRequest deleteRequest =
-          AdminDeleteUserRequest.builder().userPoolId(userPoolId).username(userName).build();
+          AdminDeleteUserRequest.builder()
+              .userPoolId(awsProperties.getCognito().getUserPoolId())
+              .username(userName)
+              .build();
 
       cognitoClient.adminDeleteUser(deleteRequest);
       return true;
@@ -106,7 +109,7 @@ public class CognitoUserService implements IUserService {
 
       AdminUpdateUserAttributesRequest updateRequest =
           AdminUpdateUserAttributesRequest.builder()
-              .userPoolId(userPoolId)
+              .userPoolId(awsProperties.getCognito().getUserPoolId())
               .username(userName)
               .userAttributes(attributeTypes)
               .build();
@@ -129,7 +132,10 @@ public class CognitoUserService implements IUserService {
     try (CognitoIdentityProviderClient cognitoClient =
         CognitoIdentityProviderClient.builder().build()) {
       AdminGetUserRequest getUserRequest =
-          AdminGetUserRequest.builder().userPoolId(userPoolId).username(username).build();
+          AdminGetUserRequest.builder()
+              .userPoolId(awsProperties.getCognito().getUserPoolId())
+              .username(username)
+              .build();
 
       AdminGetUserResponse getUserResponse = cognitoClient.adminGetUser(getUserRequest);
       List<UserAttribute> userAttrsResult = new ArrayList<>();
@@ -138,7 +144,10 @@ public class CognitoUserService implements IUserService {
       }
 
       AdminListGroupsForUserRequest requestGetGroups =
-          AdminListGroupsForUserRequest.builder().username(username).userPoolId(userPoolId).build();
+          AdminListGroupsForUserRequest.builder()
+              .username(username)
+              .userPoolId(awsProperties.getCognito().getUserPoolId())
+              .build();
 
       AdminListGroupsForUserResponse responseGroups =
           cognitoClient.adminListGroupsForUser(requestGetGroups);
@@ -158,7 +167,7 @@ public class CognitoUserService implements IUserService {
   @Override
   public Optional<UserTokenClaims> getUserTokenClaims(HttpServletRequest request) {
     try {
-      String cognitoIssuer = getCognitoIssuer(userPoolId);
+      String cognitoIssuer = getCognitoIssuer(awsProperties.getCognito().getUserPoolId());
       JwkProvider provider = new JwkProviderBuilder(cognitoIssuer).build();
       Algorithm algorithm = Algorithm.RSA256(new CognitoRSAKeyProvider(provider));
 
@@ -205,7 +214,7 @@ public class CognitoUserService implements IUserService {
           AdminAddUserToGroupRequest.builder()
               .groupName(role.getRoleName())
               .username(userName)
-              .userPoolId(userPoolId)
+              .userPoolId(awsProperties.getCognito().getUserPoolId())
               .build());
       return true;
     } catch (Exception e) {

@@ -6,6 +6,8 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -29,5 +31,24 @@ public class SecurityConfig {
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
     return http.build();
+  }
+
+  /**
+   * Returns a JwtDecoder object based on the provided ApplicationProperties configuration.
+   *
+   * @param applicationProperties The ApplicationProperties object used for configuring the
+   *     JwtDecoder.
+   * @return A JwtDecoder object.
+   */
+  @Bean
+  public JwtDecoder jwtDecoder(ApplicationProperties applicationProperties) {
+    return NimbusJwtDecoder.withJwkSetUri(
+            applicationProperties
+                .getSecurity()
+                .getOauth2()
+                .getResourceserver()
+                .getJwt()
+                .getIssuerUri())
+        .build();
   }
 }

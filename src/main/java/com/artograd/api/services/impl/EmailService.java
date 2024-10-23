@@ -1,5 +1,6 @@
 package com.artograd.api.services.impl;
 
+import com.artograd.api.config.AwsProperties;
 import com.artograd.api.model.EmailDetails;
 import com.artograd.api.model.SocialMediaContact;
 import com.artograd.api.model.Tender;
@@ -18,35 +19,32 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
 @Service
-public class EmailService implements IEmailService  {
+public class EmailService implements IEmailService {
 
-  @Autowired
-  private MessageSource messageSource;
+  @Autowired private MessageSource messageSource;
 
-  @Autowired
-  private ISocialMediaContactService socialMediaContactService;
-  
-  @Value("${aws.sqs.mails}")
-  private String sqsQueueUrl;
+  @Autowired private ISocialMediaContactService socialMediaContactService;
+
+  @Autowired private AwsProperties awsProperties;
 
   private final SqsClient sqsClient;
 
-  @Autowired
-  private IEmailTemplates templatesEngine;
+  @Autowired private IEmailTemplates templatesEngine;
 
   public EmailService() {
     this.sqsClient = SqsClient.builder().build();
   }
 
   private void sendToQueue(String recipientEmail, String subject, String body, String groupId) {
-    EmailDetails emailDetails = new EmailDetails(recipientEmail, subject, body); 
-    String emailDetailsString = convertToJson(emailDetails); 
+    EmailDetails emailDetails = new EmailDetails(recipientEmail, subject, body);
+    String emailDetailsString = convertToJson(emailDetails);
 
-    SendMessageRequest sendMsgRequest = SendMessageRequest.builder()
-        .queueUrl(sqsQueueUrl)
-        .messageBody(emailDetailsString)
-        .messageGroupId(groupId)
-        .build();
+    SendMessageRequest sendMsgRequest =
+        SendMessageRequest.builder()
+            .queueUrl(awsProperties.getSqs().getMails())
+            .messageBody(emailDetailsString)
+            .messageGroupId(groupId)
+            .build();
 
     sqsClient.sendMessage(sendMsgRequest);
   }
@@ -62,15 +60,15 @@ public class EmailService implements IEmailService  {
 
   @Override
   public void sendEmailsTenderIsPublished(Tender tender) {
-    List<SocialMediaContact> contacts = 
-          socialMediaContactService.getContactsByUserId(tender.getOwnerId());
+    List<SocialMediaContact> contacts =
+        socialMediaContactService.getContactsByUserId(tender.getOwnerId());
 
     for (SocialMediaContact contact : contacts) {
       String body = templatesEngine.getTenderPublicationTemplate(tender, contact);
       String subjectKey = "tender.published";
       @SuppressWarnings("deprecation")
-      String subject = messageSource.getMessage(subjectKey, null,
-          new Locale(contact.getContactLanguage()));
+      String subject =
+          messageSource.getMessage(subjectKey, null, new Locale(contact.getContactLanguage()));
       if (contact.isActive()) {
         sendToQueue(contact.getContactEmail(), subject, body, subjectKey);
       }

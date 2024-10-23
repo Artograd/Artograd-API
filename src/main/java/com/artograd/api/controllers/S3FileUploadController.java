@@ -1,5 +1,6 @@
 package com.artograd.api.controllers;
 
+import com.artograd.api.config.AwsProperties;
 import com.artograd.api.model.FileInfo;
 import com.artograd.api.model.system.UserTokenClaims;
 import com.artograd.api.services.IUserService;
@@ -15,7 +16,6 @@ import javax.imageio.ImageIO;
 import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,11 +31,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 @RestController
 public class S3FileUploadController {
 
-  @Value("${aws.s3.bucket-name}")
-  private String bucketName;
-
-  @Value("${aws.cloudfront.distribution-domain}")
-  private String cloudFrontDomainName;
+  @Autowired AwsProperties awsProperties;
 
   @Autowired private IUserService userService;
 
@@ -47,14 +43,14 @@ public class S3FileUploadController {
    *
    * @param tenderFolder The name of the tender folder where the file should be uploaded.
    * @param subFolder The name of the sub-folder within the tender folder where the file should be
-   *                  uploaded.
+   *     uploaded.
    * @param file The file to be uploaded.
    * @param request The HTTP servlet request object.
    * @return A ResponseEntity representing the HTTP response. If the file upload is successful, it
-   *         returns the file info in the response body. If the file is empty, it returns a bad
-   *         request status with the corresponding error message. If the user is not authorized or
-   *         there is an error processing the file, it returns a forbidden or internal server error
-   *         status with the corresponding error message.
+   *     returns the file info in the response body. If the file is empty, it returns a bad request
+   *     status with the corresponding error message. If the user is not authorized or there is an
+   *     error processing the file, it returns a forbidden or internal server error status with the
+   *     corresponding error message.
    */
   @PostMapping("/uploadFile/{tenderFolder}/{subFolder}")
   @SecurityRequirement(name = "bearerAuth")
@@ -93,7 +89,7 @@ public class S3FileUploadController {
 
     uploadToS3(file.getBytes(), uniqueFileName);
 
-    String fileUrl = cloudFrontDomainName + "/" + uniqueFileName;
+    String fileUrl = awsProperties.getCloudfront().getDistributionDomain() + "/" + uniqueFileName;
     String snapPath =
         fileType.equals("image")
             ? createAndUploadImageSnap(file, tenderFolder, subFolder, fileName, extension)
@@ -119,13 +115,13 @@ public class S3FileUploadController {
           String.format("%s/%s/snaps/%s.%s", tenderFolder, subFolder, fileName, extension);
       uploadToS3(snapBytes, snapFileName);
 
-      return cloudFrontDomainName + "/" + snapFileName;
+      return awsProperties.getCloudfront().getDistributionDomain() + "/" + snapFileName;
     }
   }
 
   private void uploadToS3(byte[] content, String key) {
     s3Client.putObject(
-        PutObjectRequest.builder().bucket(bucketName).key(key).build(),
+        PutObjectRequest.builder().bucket(awsProperties.getS3().getBucketName()).key(key).build(),
         RequestBody.fromBytes(content));
   }
 
