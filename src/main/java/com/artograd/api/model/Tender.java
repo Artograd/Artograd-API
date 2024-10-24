@@ -1,16 +1,19 @@
 package com.artograd.api.model;
 
+import com.artograd.api.constants.CollectionNames;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
 import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 @Schema
 @Getter
 @Setter
 @NoArgsConstructor
+@Document(collection = CollectionNames.TENDER)
 public class Tender {
 
   @Schema(description = "The unique auto-generated identifier of the tender")
@@ -72,16 +75,16 @@ public class Tender {
 
   @Schema(description = "The proposals for the tender")
   private List<Proposal> proposals;
-  
+
   @Schema(description = "The reason of cancellation of the tender")
   private String cancellationReason;
-  
+
   @Schema(description = "The end date of voting")
   private Date votingEndDate;
-  
+
   @Schema(description = "The ID of art object after conversion")
   private String artObjectId;
-  
+
   @Schema(description = "The ID of won proposal")
   private String winnerId;
 }
