@@ -8,10 +8,13 @@ import com.artograd.api.model.enums.UserAttributeKey;
 import com.artograd.api.repositories.TenderRepository;
 import com.artograd.api.services.ITenderService;
 import com.artograd.api.services.IUserService;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +47,7 @@ public class TenderService implements ITenderService {
   @Override
   public Tender createTender(Tender tender) {
     enrichTenderWithOwnerDataAndTimestamps(tender);
+    updateTenderStatusIfSubmissionStartIsToday(tender);
     tender.setCreatedAt(new Date());
     return tenderRepository.save(tender);
   }
@@ -186,6 +190,20 @@ public class TenderService implements ITenderService {
                     userAttributeHelper.getUserAttributeValue(
                         user, UserAttributeKey.CUSTOM_ORGANIZATION));
               });
+    }
+  }
+
+  /**
+   * Updates the status of a tender to IDEATION if the submission start date is today.
+   *
+   * @param tender The tender to update.
+   */
+  private void updateTenderStatusIfSubmissionStartIsToday(Tender tender) {
+    LocalDateTime startOfDay =
+        LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
+    Date today = Date.from(startOfDay.atZone(ZoneId.systemDefault()).toInstant());
+    if (Objects.equals(tender.getSubmissionStart(), today)) {
+      tender.setStatus(TenderStatus.IDEATION.toString());
     }
   }
 }
